@@ -1,0 +1,597 @@
+Drag and Drop Example
+
+Question Type: Multipart
+
+Common Control:
+
+// Dynamic drag-and-drop arithmetic sequence formulas
+// Question Type: Multipart
+// Part 0: recursive previous-term card
+// Part 1: recursive signed change
+// Part 2: explicit coefficient of n
+// Part 3: explicit variable n card
+// Part 4: explicit constant
+
+$anstypes = array("number","number","number","number","number")
+$answeights = array(1,1,1,1,1)
+
+$rootid = "ddseq".rand(100000,999999)
+
+// Numeric codes for non-numeric formula cards.
+$codePrev = 101
+$codeN = 102
+$codeWrongVar = 103
+
+// Variation types are equally likely:
+// 0 = positive first term, positive common difference
+// 1 = positive first term, negative common difference
+// 2 = negative first term, positive common difference
+// 3 = negative first term, negative common difference
+
+$mode = rand(0,3)
+
+$a1mag = rrand(3,18,.1)
+$dabs = randfrom(array(.5,.75,1.25,1.5,2,2.5,3,3.5,4,4.5,5,7))
+
+$a1sign = 1
+$a1sign = -1 if ($mode==2 || $mode==3)
+
+$dsign = 1
+$dsign = -1 if ($mode==1 || $mode==3)
+
+$a1 = $a1sign*$a1mag
+$d = $dsign*$dabs
+
+// Generate first five terms.
+$t1 = $a1
+$t2 = $t1 + $d
+$t3 = $t2 + $d
+$t4 = $t3 + $d
+$t5 = $t4 + $d
+
+// Explicit formula:
+// a_n = a_1 + d(n - 1)
+// a_n = dn + (a_1 - d)
+$b = $a1 - $d
+
+// Answers for hidden MOM answer boxes.
+$answer[0] = $codePrev
+$answer[1] = $d
+$answer[2] = $d
+$answer[3] = $codeN
+$answer[4] = $b
+
+for ($i=0..4) {
+  $answerboxsize[$i] = 6
+  $abstolerance[$i] = 0.0001
+}
+
+$readerlabel[0] = "Recursive previous term"
+$readerlabel[1] = "Recursive signed change"
+$readerlabel[2] = "Explicit coefficient"
+$readerlabel[3] = "Explicit variable"
+$readerlabel[4] = "Explicit constant"
+
+// Display values.
+$t1disp = round($t1,2)
+$t2disp = round($t2,2)
+$t3disp = round($t3,2)
+$t4disp = round($t4,2)
+$t5disp = round($t5,2)
+
+$ddisp = round($d,2)
+$dabsdisp = round(abs($d),2)
+$bdisp = round($b,2)
+$babsdisp = round(abs($b),2)
+
+$listDisplay = "$t1disp, $t2disp, $t3disp, $t4disp, $t5disp"
+
+// Pretty formula displays.
+$recFormulaShow = ""
+$recFormulaShow = "a<sub>n</sub> = a<sub>n - 1</sub> + $dabsdisp" if ($d>=0)
+$recFormulaShow = "a<sub>n</sub> = a<sub>n - 1</sub> - $dabsdisp" if ($d<0)
+
+$explicitFormulaShow = ""
+if ($b>=0) {
+  $explicitFormulaShow = "a<sub>n</sub> = $ddisp<span style='font-style:italic;'>n</span> + $babsdisp"
+} else {
+  $explicitFormulaShow = "a<sub>n</sub> = $ddisp<span style='font-style:italic;'>n</span> - $babsdisp"
+}
+
+// Wrong card values.
+$numWrong = rand(1,3)
+
+$wrong1 = -$d
+$wrong1 = 2*$d if ($wrong1==$d || $wrong1==$b)
+
+$wrong2 = $a1
+$wrong2 = $t2 if ($wrong2==$d || $wrong2==$b || $wrong2==$wrong1)
+$wrong2 = $a1 + 2*$d if ($wrong2==$d || $wrong2==$b || $wrong2==$wrong1)
+
+$wrong1disp = round($wrong1,2)
+$wrong2disp = round($wrong2,2)
+
+// Required cards.
+// There are two common-difference cards because the value is used twice.
+$cardPrev = "<div role='button' tabindex='0' class='dd-card' draggable='true' data-card-id='prev' data-value='$codePrev'>a<sub>n - 1</sub></div>"
+$cardD1 = "<div role='button' tabindex='0' class='dd-card' draggable='true' data-card-id='d1' data-value='$ddisp'>$ddisp</div>"
+$cardD2 = "<div role='button' tabindex='0' class='dd-card' draggable='true' data-card-id='d2' data-value='$ddisp'>$ddisp</div>"
+$cardN = "<div role='button' tabindex='0' class='dd-card' draggable='true' data-card-id='ncard' data-value='$codeN'><span style='font-style:italic;'>n</span></div>"
+$cardB = "<div role='button' tabindex='0' class='dd-card' draggable='true' data-card-id='bcard' data-value='$bdisp'>$bdisp</div>"
+
+$wrongCard1 = "<div role='button' tabindex='0' class='dd-card wrong-card' draggable='true' data-card-id='w1' data-value='$wrong1disp'>$wrong1disp</div>"
+$wrongCard2 = "<div role='button' tabindex='0' class='dd-card wrong-card' draggable='true' data-card-id='w2' data-value='$wrong2disp'>$wrong2disp</div>"
+$wrongCard3 = "<div role='button' tabindex='0' class='dd-card wrong-card' draggable='true' data-card-id='w3' data-value='$codeWrongVar'>a<sub>1</sub></div>"
+
+$cards = array($cardPrev,$cardD1,$cardD2,$cardN,$cardB)
+$cards[5] = $wrongCard1 if ($numWrong>=1)
+$cards[6] = $wrongCard2 if ($numWrong>=2)
+$cards[7] = $wrongCard3 if ($numWrong>=3)
+
+$shufCards = singleshuffle($cards)
+
+$lastCardIndex = 4 + $numWrong
+$cardBankHTML = ""
+
+for ($i=0..$lastCardIndex) {
+  $cardBankHTML .= $shufCards[$i]
+}
+
+// Feedback.
+$prevCorrect = "<div class='dd-feedback dd-correct'><strong>Previous-term card correct.</strong></div>"
+$prevWrong = "<div class='dd-feedback dd-wrong'><strong>Check the recursive formula.</strong> The recursive rule should use the term immediately before a<sub>n</sub>.</div>"
+$prevFeedback = getfeedbackbasic($prevCorrect,$prevWrong,$thisq,0)
+
+$recCorrect = "<div class='dd-feedback dd-correct'><strong>Recursive change correct.</strong></div>"
+$recWrong = "<div class='dd-feedback dd-wrong'><strong>Check the recursive change.</strong> Find the common difference by subtracting consecutive terms: next term minus previous term.</div>"
+$recFeedback = getfeedbackbasic($recCorrect,$recWrong,$thisq,1)
+
+$coefCorrect = "<div class='dd-feedback dd-correct'><strong>Coefficient correct.</strong></div>"
+$coefWrong = "<div class='dd-feedback dd-wrong'><strong>Check the coefficient.</strong> In an arithmetic sequence, the coefficient of n should match the common difference.</div>"
+$coefFeedback = getfeedbackbasic($coefCorrect,$coefWrong,$thisq,2)
+
+$nCorrect = "<div class='dd-feedback dd-correct'><strong>Variable card correct.</strong></div>"
+$nWrong = "<div class='dd-feedback dd-wrong'><strong>Check the variable.</strong> The simplified explicit formula should use n as the input term number.</div>"
+$nFeedback = getfeedbackbasic($nCorrect,$nWrong,$thisq,3)
+
+$constCorrect = "<div class='dd-feedback dd-correct'><strong>Constant correct.</strong></div>"
+$constWrong = "<div class='dd-feedback dd-wrong'><strong>Check the constant.</strong> Substitute n = 1 into your explicit formula. It should give the first term.</div>"
+$constFeedback = getfeedbackbasic($constCorrect,$constWrong,$thisq,4)
+
+// CSS.
+$css = "<style>
+.ddseq-wrap{font-size:14pt;line-height:1.12;max-width:1100px;margin:0;}
+.ddseq-wrap *{box-sizing:border-box;}
+.dd-cardbank{min-height:54px;border:1px solid #bbb;border-radius:8px;background:#f8fbff;padding:7px;margin:6px 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.dd-card{display:inline-block;border:1px solid #777;border-radius:7px;background:#fff;padding:6px 11px;min-width:54px;text-align:center;font-weight:bold;cursor:grab;user-select:none;box-shadow:0 1px 2px rgba(0,0,0,.12);}
+.dd-card.selected{outline:3px solid #6aa5ff;background:#eef6ff;}
+.dd-drop{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;min-width:78px;min-height:38px;border:2px dashed #999;border-radius:8px;background:#fff;padding:3px 5px;margin:0 3px;}
+.dd-drop .dd-card{cursor:grab;margin:0;}
+.dd-placeholder{color:#777;font-size:12pt;font-style:italic;}
+.dd-formula-panel{border:1px solid #ccc;border-radius:8px;background:#fff;padding:8px;margin:7px 0;}
+.dd-formula-title{font-weight:bold;margin:0 0 5px 0;}
+.dd-formula-line{margin:5px 0;font-size:14pt;line-height:1.2;}
+.dd-feedback{font-size:14pt;line-height:1.12;margin:5px 0 0 0;padding:6px 8px;border-radius:0;}
+.dd-correct{border:1px solid #b7d9bd;background:#f2fbf3;color:#087a2e;}
+.dd-wrong{border:1px solid #e6caa2;background:#fff8ee;color:#6b4300;}
+.mom-hidden{position:absolute;left:-10000px;top:-10000px;width:1px;height:1px;overflow:hidden;}
+.dd-note{font-size:12pt;color:#555;margin-top:4px;}
+</style>"
+
+// JavaScript.
+// Important scoring fix: update every input/textarea inside each hidden answer box.
+$js = "<script>
+(function(){
+var root=document.getElementById('$rootid');
+if(!root){return;}
+
+var selected=null;
+var restoring=true;
+
+function qa(sel){return Array.prototype.slice.call(root.querySelectorAll(sel));}
+
+function inputsFor(i){
+  return Array.prototype.slice.call(root.querySelectorAll('.mom-hidden[data-hidden=\"'+i+'\"] input, .mom-hidden[data-hidden=\"'+i+'\"] textarea'));
+}
+
+function zoneFor(i){
+  return root.querySelector('.dd-drop[data-zone=\"'+i+'\"]');
+}
+
+function bank(){
+  return root.querySelector('.dd-cardbank[data-zone=\"bank\"]');
+}
+
+function setPlaceholders(){
+  qa('.dd-drop').forEach(function(z){
+    var ph=z.querySelector('.dd-placeholder');
+    if(ph){ph.style.display=z.querySelector('.dd-card')?'none':'inline';}
+  });
+}
+
+function setInput(i,val,send){
+  var inputs=inputsFor(i);
+  inputs.forEach(function(inp){
+    inp.value=val;
+    inp.setAttribute('value',val);
+    if(send){
+      inp.dispatchEvent(new Event('input',{bubbles:true}));
+      inp.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+  });
+}
+
+function syncHidden(send){
+  for(var i=0;i<5;i++){
+    var z=zoneFor(i);
+    var c=z?z.querySelector('.dd-card'):null;
+    setInput(i,c?c.getAttribute('data-value'):'',send!==false);
+  }
+}
+
+function clearSelected(){
+  qa('.dd-card.selected').forEach(function(c){c.classList.remove('selected');});
+  selected=null;
+}
+
+function moveCard(card,target,silent){
+  if(!card||!target){return;}
+
+  if(target.classList.contains('dd-drop')){
+    var old=target.querySelector('.dd-card');
+    if(old&&old!==card){bank().appendChild(old);}
+    target.appendChild(card);
+  } else {
+    target.appendChild(card);
+  }
+
+  clearSelected();
+  setPlaceholders();
+
+  if(!silent && !restoring){
+    syncHidden(true);
+  }
+}
+
+function selectCard(card){
+  clearSelected();
+  selected=card;
+  card.classList.add('selected');
+}
+
+function findUnusedCardByValue(val){
+  var cards=qa('.dd-card');
+  for(var i=0;i<cards.length;i++){
+    if(cards[i].getAttribute('data-value')==val && cards[i].getAttribute('data-restored')!='1'){
+      return cards[i];
+    }
+  }
+  return null;
+}
+
+qa('.dd-card').forEach(function(card){
+  card.addEventListener('click',function(ev){
+    ev.stopPropagation();
+    selectCard(card);
+  });
+
+  card.addEventListener('dragstart',function(ev){
+    ev.dataTransfer.setData('text/plain',card.getAttribute('data-card-id'));
+  });
+});
+
+qa('.dd-drop,.dd-cardbank').forEach(function(z){
+  z.addEventListener('dragover',function(ev){
+    ev.preventDefault();
+  });
+
+  z.addEventListener('drop',function(ev){
+    ev.preventDefault();
+    var id=ev.dataTransfer.getData('text/plain');
+    var card=root.querySelector('[data-card-id=\"'+id+'\"]');
+    moveCard(card,z,false);
+  });
+
+  z.addEventListener('click',function(){
+    if(selected){moveCard(selected,z,false);}
+  });
+});
+
+// Restore saved hidden values after submit.
+// Capture all values before moving cards.
+var saved=[];
+for(var i=0;i<5;i++){
+  var inputs=inputsFor(i);
+  saved[i]=inputs.length>0 ? String(inputs[0].value).trim() : '';
+}
+
+for(var j=0;j<5;j++){
+  if(saved[j] !== ''){
+    var c=findUnusedCardByValue(saved[j]);
+    var z=zoneFor(j);
+    if(c&&z){
+      c.setAttribute('data-restored','1');
+      moveCard(c,z,true);
+    }
+  }
+}
+
+qa('.dd-card').forEach(function(c){c.removeAttribute('data-restored');});
+
+restoring=false;
+setPlaceholders();
+syncHidden(true);
+})();
+</script>"
+
+// Show answer.
+$showanswer = ""
+$showanswer .= "<div style='font-size:14pt; line-height:1.12; max-width:950px; margin:0;'>"
+$showanswer .= "<div style='font-weight:bold; color:#087a2e; margin-bottom:5px;'>Correct answer: $recFormulaShow; $explicitFormulaShow</div>"
+$showanswer .= "<div style='margin-top:4px;'>The sequence shown is <span style='color:#8a5a00; font-weight:bold;'>$listDisplay</span>.</div>"
+$showanswer .= "<div style='margin-top:5px;'>Find the common difference by subtracting consecutive terms:</div>"
+$showanswer .= "<div style='margin-top:4px; margin-left:18px;'><span style='color:#8a5a00; font-weight:bold;'>$t2disp</span> - <span style='color:#1f77b4; font-weight:bold;'>$t1disp</span> = <span style='color:#087a2e; font-weight:bold;'>$ddisp</span></div>"
+$showanswer .= "<div style='margin-top:5px;'>The recursive formula uses the previous term and the common difference:</div>"
+$showanswer .= "<div style='margin-top:4px; margin-left:18px; color:#087a2e; font-weight:bold;'>$recFormulaShow</div>"
+$showanswer .= "<div style='margin-top:5px;'>For the explicit formula, start with:</div>"
+$showanswer .= "<div style='margin-top:4px; margin-left:18px;'>a<sub>n</sub> = a<sub>1</sub> + d(n - 1)</div>"
+$showanswer .= "<div style='margin-top:4px; margin-left:18px;'>a<sub>n</sub> = <span style='color:#1f77b4; font-weight:bold;'>$t1disp</span> + <span style='color:#087a2e; font-weight:bold;'>$ddisp</span>(n - 1)</div>"
+$showanswer .= "<div style='margin-top:4px; margin-left:18px; color:#087a2e; font-weight:bold;'>$explicitFormulaShow</div>"
+$showanswer .= "<div style='margin-top:6px;'>This explicit formula works because substituting n = 1 gives the first term, and increasing n by 1 changes the value by the common difference.</div>"
+$showanswer .= "</div>"
+
+
+Question Text:
+
+$css
+
+<div id="$rootid" class="ddseq-wrap">
+  <table style="width:100%; border-collapse:collapse; margin:0;">
+    <tr>
+      <td style="vertical-align:top; padding:0;">
+        <div style="margin:0 0 8px 0;">
+          For the sequence, build a recursive formula and a simplified explicit formula by dragging the value cards into the blanks.
+        </div>
+
+        <div style="border:1px solid #ccc; border-radius:8px; padding:8px; background:#f8fbff; margin:0 0 8px 0;">
+          <div style="margin:2px 0;">
+            <span style="font-style:italic;">a</span><sub>1</sub> = $t1disp,
+            <span style="font-style:italic;">a</span><sub>2</sub> = $t2disp,
+            <span style="font-style:italic;">a</span><sub>3</sub> = $t3disp
+          </div>
+          <div style="margin:2px 0;">
+            <span style="font-style:italic;">a</span><sub>4</sub> = $t4disp,
+            <span style="font-style:italic;">a</span><sub>5</sub> = $t5disp, ...
+          </div>
+        </div>
+      </td>
+
+      <td style="width:1%; vertical-align:top; padding:0 0 0 6px; white-space:nowrap; text-align:right;">
+        <iframe
+                src="https://www.desmos.com/testing/texas/scientific"
+                width="350"
+                height="360"
+                frameborder="0"
+                data-toggler="Calculator"
+                data-toggler-hide="Hide Calculator">
+        </iframe>
+      </td>
+    </tr>
+  </table>
+
+  <div style="margin:6px 0 4px 0; font-weight:bold;">Formula Cards</div>
+  <div class="dd-cardbank" data-zone="bank">
+    $cardBankHTML
+  </div>
+  <div class="dd-note">Drag a card into a blank, or click a card and then click a blank. Move cards back to the bank if needed.</div>
+
+  <div class="dd-formula-panel">
+    <div class="dd-formula-title">Recursive Formula</div>
+    <div class="dd-formula-line">
+      <span style="font-style:italic;">a</span><sub>n</sub> =
+      <span class="dd-drop" data-zone="0" tabindex="0"><span class="dd-placeholder">previous term</span></span>
+      +
+      <span class="dd-drop" data-zone="1" tabindex="0"><span class="dd-placeholder">signed change</span></span>
+    </div>
+    <div class="dd-note">A negative card after + means subtract.</div>
+    $prevFeedback
+    $recFeedback
+  </div>
+
+  <div class="dd-formula-panel">
+    <div class="dd-formula-title">Simplified Explicit Formula</div>
+    <div class="dd-formula-line">
+      <span style="font-style:italic;">a</span><sub>n</sub> =
+      <span class="dd-drop" data-zone="2" tabindex="0"><span class="dd-placeholder">coefficient</span></span>
+      <span class="dd-drop" data-zone="3" tabindex="0"><span class="dd-placeholder">variable</span></span>
+      +
+      <span class="dd-drop" data-zone="4" tabindex="0"><span class="dd-placeholder">constant</span></span>
+    </div>
+    <div class="dd-note">The coefficient of n should match the repeated change. A negative constant after + means subtract.</div>
+    $coefFeedback
+    $nFeedback
+    $constFeedback
+  </div>
+
+  <div class="mom-hidden" data-hidden="0">$answerbox[0]</div>
+  <div class="mom-hidden" data-hidden="1">$answerbox[1]</div>
+  <div class="mom-hidden" data-hidden="2">$answerbox[2]</div>
+  <div class="mom-hidden" data-hidden="3">$answerbox[3]</div>
+  <div class="mom-hidden" data-hidden="4">$answerbox[4]</div>
+</div>
+
+$js
+
+
+Written Example:
+
+<div style="font-family: Arial, sans-serif; font-size: 14pt; line-height: 1.12; max-width: 1100px; margin: 0 auto; color: #222;">
+  <div style="border: 2px solid #333; border-radius: 8px; padding: 9px 11px; margin: 0 0 8px 0; background: #f7f7f7;">
+    <div style="font-size: 17pt; font-weight: bold; margin: 0 0 4px 0;">Building Recursive and Explicit Formulas from a Sequence</div>
+    <div style="margin: 0;">Use the repeated change to build both formulas.</div>
+  </div>
+  <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+    <tbody>
+      <tr>
+        <td style="width: 58%; vertical-align: top; padding: 0 8px 0 0;"><br><br>
+          <div style="border: 1px solid #999; border-radius: 8px; padding: 9px; margin: 0 0 8px 0; background: #fff;">
+            <div style="font-weight: bold; margin: 0 0 5px 0;">1. Big Idea</div>
+            <div style="margin: 2px 0;">An arithmetic sequence changes by adding the same number each time.</div>
+            <div style="margin: 2px 0;">That repeated change is the <span style="color: #087a2e; font-weight: bold;">common difference</span>.</div>
+            <div style="margin: 2px 0;">The recursive formula uses the <span style="color: #8a5a00; font-weight: bold;">previous term</span>.</div>
+            <div style="margin: 2px 0;">The explicit formula uses the <span style="color: #1f77b4; font-weight: bold;">term number n</span>.</div>
+            <div style="margin: 5px 0 0 18px; font-weight: bold;">Recursive: <span style="color: #8a5a00;">previous term</span> + <span style="color: #087a2e;">change</span></div>
+            <div style="margin: 3px 0 0 18px; font-weight: bold;">Explicit: <span style="color: #087a2e;">change</span><span style="color: #1f77b4;">n</span> + constant</div>
+          </div>
+          <br>
+          <div style="border: 1px solid #999; border-radius: 8px; padding: 9px; margin: 0 0 8px 0; background: #f8fbff;">
+            <div style="font-weight: bold; margin: 0 0 5px 0;">2. Step-by-Step Method</div>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tbody>
+                <tr>
+                  <td style="width: 8%; vertical-align: top; font-weight: bold; color: #087a2e; padding: 3px;">1</td>
+                  <td style="padding: 3px;">Find the common difference by subtracting: next term - previous term.</td>
+                </tr>
+                <tr>
+                  <td style="vertical-align: top; font-weight: bold; color: #087a2e; padding: 3px;">2</td>
+                  <td style="padding: 3px;">Put the previous-term card into the recursive formula: <strong>a<sub>n - 1</sub></strong>.</td>
+                </tr>
+                <tr>
+                  <td style="vertical-align: top; font-weight: bold; color: #087a2e; padding: 3px;">3</td>
+                  <td style="padding: 3px;">Put the common difference after the plus sign. A negative value means subtract.</td>
+                </tr>
+                <tr>
+                  <td style="vertical-align: top; font-weight: bold; color: #087a2e; padding: 3px;">4</td>
+                  <td style="padding: 3px;">For the explicit formula, use the common difference as the coefficient of <span style="color: #1f77b4; font-weight: bold;">n</span>.</td>
+                </tr>
+                <tr>
+                  <td style="vertical-align: top; font-weight: bold; color: #087a2e; padding: 3px;">5</td>
+                  <td style="padding: 3px;">Choose the constant so the formula gives the first term when <span style="color: #1f77b4; font-weight: bold;">n = 1</span>.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <br>
+          <div style="border: 1px solid #aaa; border-radius: 8px; padding: 9px; margin: 0 0 8px 0; background: #fff;">
+            <div style="font-weight: bold; margin: 0 0 5px 0;">3. Example with Positive Change</div>
+            <div style="margin: 2px 0;">Sequence: <span style="color: #8a5a00; font-weight: bold;">4, 7, 10, 13, 16, ...</span></div>
+            <div style="margin: 2px 0;">Common difference: <span style="color: #8a5a00;">7</span> - <span style="color: #1f77b4;">4</span> = <span style="color: #087a2e; font-weight: bold;">3</span></div>
+            <br><br>
+            <table style="border-collapse: collapse; font-size: 14pt; line-height: 1.12; margin: 6px auto;">
+              <tbody>
+                <tr>
+                  <th style="border: 1px solid #777; padding: 5px 12px; background: #eef5ee;">Formula Type</th>
+                  <th style="border: 1px solid #777; padding: 5px 12px; background: #eef5ee;">Build It</th>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #777; padding: 5px 12px;">Recursive</td>
+                  <td style="border: 1px solid #777; padding: 5px 12px;">a<sub>n</sub> = a<sub>n - 1</sub> + <span style="color: #087a2e; font-weight: bold;">3</span></td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #777; padding: 5px 12px;">Explicit</td>
+                  <td style="border: 1px solid #777; padding: 5px 12px;">a<sub>n</sub> = <span style="color: #087a2e; font-weight: bold;">3</span><span style="color: #1f77b4; font-weight: bold;">n</span> + 1</td>
+                </tr>
+              </tbody>
+            </table>
+            <br><br>
+            <div style="margin: 2px 0;">Check: when n = 1, 3(1) + 1 = 4.</div>
+          </div>
+          <br>
+          <div style="border: 1px solid #aaa; border-radius: 8px; padding: 9px; margin: 0; background: #fff;">
+            <div style="font-weight: bold; margin: 0 0 5px 0;">4. Example with Negative Change</div>
+            <div style="margin: 2px 0;">Sequence: <span style="color: #8a5a00; font-weight: bold;">12, 5, -2, -9, -16, ...</span></div>
+            <div style="margin: 2px 0;">Common difference: <span style="color: #8a5a00;">5</span> - <span style="color: #1f77b4;">12</span> = <span style="color: #087a2e; font-weight: bold;">-7</span></div>
+            <br><br>
+            <table style="border-collapse: collapse; font-size: 14pt; line-height: 1.12; margin: 6px auto;">
+              <tbody>
+                <tr>
+                  <th style="border: 1px solid #777; padding: 5px 12px; background: #eef5ee;">Formula Type</th>
+                  <th style="border: 1px solid #777; padding: 5px 12px; background: #eef5ee;">Build It</th>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #777; padding: 5px 12px;">Recursive</td>
+                  <td style="border: 1px solid #777; padding: 5px 12px;">a<sub>n</sub> = a<sub>n - 1</sub> + <span style="color: #087a2e; font-weight: bold;">-7</span></td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #777; padding: 5px 12px;">Explicit</td>
+                  <td style="border: 1px solid #777; padding: 5px 12px;">a<sub>n</sub> = <span style="color: #087a2e; font-weight: bold;">-7</span><span style="color: #1f77b4; font-weight: bold;">n</span> + 19</td>
+                </tr>
+              </tbody>
+            </table>
+            <br><br>
+            <div style="margin: 2px 0;">A negative card after a plus sign means subtract: a<sub>n - 1</sub> + -7 is the same as a<sub>n - 1</sub> - 7.</div>
+          </div>
+        </td>
+        <td style="width: 42%; vertical-align: top; padding: 0 0 0 8px;"><br><br>
+          <div style="border: 1px solid #999; border-radius: 8px; padding: 9px; margin: 0 0 8px 0; background: #f8fbff;">
+            <div style="font-weight: bold; margin: 0 0 5px 0;">What to Look For</div>
+            <div style="margin: 3px 0;">Find the repeated change first.</div>
+            <div style="margin: 3px 0;">The recursive formula needs <strong>a<sub>n - 1</sub></strong>, not a<sub>1</sub>.</div>
+            <div style="margin: 3px 0;">The coefficient of <span style="color: #1f77b4; font-weight: bold;">n</span> is the <span style="color: #087a2e; font-weight: bold;">common difference</span>.</div>
+            <div style="margin: 3px 0;">The constant is not always the first term.</div>
+            <div style="margin: 3px 0;">Test the explicit formula using n = 1.</div>
+          </div>
+          <br>
+          <div style="border: 1px solid #999; border-radius: 8px; padding: 9px; margin: 0 0 8px 0; background: #fffaf2;">
+            <div style="font-weight: bold; margin: 0 0 5px 0;">Shortcut</div>
+            <div style="margin: 3px 0;">For arithmetic sequences:</div>
+            <div style="margin: 5px 0; padding: 6px 8px; border: 1px solid #ddd; background: #fff;">
+              <div style="margin: 2px 0;">Recursive: a<sub>n</sub> = a<sub>n - 1</sub> + d</div>
+              <div style="margin: 2px 0;">Explicit: a<sub>n</sub> = dn + b</div>
+            </div>
+            <div style="margin: 3px 0;">The same <span style="color: #087a2e; font-weight: bold;">d</span> goes in both formulas.</div>
+            <div style="margin: 3px 0;">Find <strong>b</strong> by making the formula work for n = 1.</div>
+          </div>
+          <br>
+          <div style="border: 1px solid #999; border-radius: 8px; padding: 9px; margin: 0 0 8px 0; background: #fff;">
+            <div style="font-weight: bold; margin: 0 0 5px 0;">Shortcut Example</div>
+            <div style="margin: 3px 0;">Sequence: <span style="color: #8a5a00; font-weight: bold;">8, 13, 18, 23, ...</span></div>
+            <div style="margin: 3px 0;">Change: <span style="color: #087a2e; font-weight: bold;">+5</span></div>
+            <div style="margin: 3px 0;">Recursive: a<sub>n</sub> = a<sub>n - 1</sub> + 5</div>
+            <div style="margin: 3px 0;">Explicit starts as a<sub>n</sub> = 5n + b.</div>
+            <div style="margin: 3px 0;">Use n = 1: 5(1) + b = 8, so b = 3.</div>
+            <div style="margin: 3px 0; color: #087a2e; font-weight: bold;">a<sub>n</sub> = 5n + 3</div>
+          </div>
+          <br>
+          <div style="border: 1px solid #b98b8b; border-radius: 8px; padding: 9px; margin: 0 0 8px 0; background: #fff7f7;">
+            <div style="font-weight: bold; margin: 0 0 5px 0;">5. Common Mistakes</div>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tbody>
+                <tr>
+                  <td style="width: 45%; vertical-align: top; padding: 4px; border-bottom: 1px solid #ddd; font-weight: bold;">Mistake</td>
+                  <td style="vertical-align: top; padding: 4px; border-bottom: 1px solid #ddd; font-weight: bold;">Fix</td>
+                </tr>
+                <tr>
+                  <td style="vertical-align: top; padding: 4px; border-bottom: 1px solid #eee;">Using a<sub>1</sub> in the recursive formula</td>
+                  <td style="vertical-align: top; padding: 4px; border-bottom: 1px solid #eee;">Use a<sub>n - 1</sub>, the previous term.</td>
+                </tr>
+                <tr>
+                  <td style="vertical-align: top; padding: 4px; border-bottom: 1px solid #eee;">Using the first term as the coefficient</td>
+                  <td style="vertical-align: top; padding: 4px; border-bottom: 1px solid #eee;">The coefficient of n is the common difference.</td>
+                </tr>
+                <tr>
+                  <td style="vertical-align: top; padding: 4px; border-bottom: 1px solid #eee;">Using the first term as the constant</td>
+                  <td style="vertical-align: top; padding: 4px; border-bottom: 1px solid #eee;">Test n = 1 to find the constant.</td>
+                </tr>
+                <tr>
+                  <td style="vertical-align: top; padding: 4px;">Losing the negative sign</td>
+                  <td style="vertical-align: top; padding: 4px;">If the sequence decreases, the common difference is negative.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <br>
+          <div style="border: 1px solid #999; border-radius: 8px; padding: 9px; margin: 0; background: #f4fff5;">
+            <div style="font-weight: bold; margin: 0 0 5px 0;">6. Final Check</div>
+            <div style="margin: 3px 0;">Does the recursive formula use a<sub>n - 1</sub>?</div>
+            <div style="margin: 3px 0;">Does the recursive change match the repeated change?</div>
+            <div style="margin: 3px 0;">Does the coefficient of n match the repeated change?</div>
+            <div style="margin: 3px 0;">When n = 1, does the explicit formula give a<sub>1</sub>?</div>
+            <div style="margin: 5px 0 0 0; color: #087a2e; font-weight: bold;">If all four checks work, your formulas probably match the sequence.</div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
