@@ -1,0 +1,406 @@
+Using Javascript to Make an interactive problem
+
+Common Control:
+
+$origitems = array("bags of peanuts","boxes of crackers","jars of salsa","sandwiches","cups of fruit","packages of ham","bottles of juice","bags of apples","loaves of bread","packs of pencils","notebooks","candles")
+
+$rowitempool = array("bags of popcorn","boxes of granola bars","jars of jam","tacos","muffins","smoothies","bags of oranges","packs of markers","slices of pizza","bowls of soup","tickets","flower bundles","bottles of water","boxes of cereal","folders","erasers")
+
+$origitem = randfrom($origitems)
+$origq = randfrom(array(2,3,4,5,6,8))
+$rate = randfrom(array(2,3,4,5,6,7,8,9,10,12))
+$origcost = $origq*$rate
+
+$origfmt = rand(0,3)
+
+$origstatement = "$origq $origitem were sold for &#36;$origcost." if ($origfmt==0)
+$origstatement = "&#36;$origcost was the total cost for $origq $origitem." if ($origfmt==1)
+$origstatement = "A customer bought $origq $origitem for &#36;$origcost." if ($origfmt==2)
+$origstatement = "For &#36;$origcost, a customer bought $origq $origitem." if ($origfmt==3)
+
+// 0 = Same unit rate
+// 1 = Different unit rate
+// These are the 14 possible mixed answer patterns.
+// This avoids all-same and all-different versions.
+$pat = rand(0,13)
+
+$rowans = array(0,1,1,1) if ($pat==0)
+$rowans = array(1,0,1,1) if ($pat==1)
+$rowans = array(1,1,0,1) if ($pat==2)
+$rowans = array(1,1,1,0) if ($pat==3)
+
+$rowans = array(0,0,1,1) if ($pat==4)
+$rowans = array(0,1,0,1) if ($pat==5)
+$rowans = array(0,1,1,0) if ($pat==6)
+$rowans = array(1,0,0,1) if ($pat==7)
+$rowans = array(1,0,1,0) if ($pat==8)
+$rowans = array(1,1,0,0) if ($pat==9)
+
+$rowans = array(0,0,0,1) if ($pat==10)
+$rowans = array(0,0,1,0) if ($pat==11)
+$rowans = array(0,1,0,0) if ($pat==12)
+$rowans = array(1,0,0,0) if ($pat==13)
+
+$rowitems = diffrandsfrom($rowitempool,4)
+
+// Unique quantity factors.
+// Since these are all greater than 1, no row repeats the original quantity.
+$qfactors = diffrandsfrom(array(3,4,5,6),4)
+
+// Different-rate cost factors are intentionally outside the same-rate factor set.
+// This helps guarantee unique cost values and prevents accidental same-rate rows.
+$diffcostfactors = diffrandsfrom(array(2,7,8,9,10,11),4)
+
+for ($i=0..3) {
+  $qsf = $qfactors[$i]
+  $rowq[$i] = $origq*$qsf
+
+  if ($rowans[$i]==0) {
+    $csf = $qsf
+    $rowcost[$i] = $origcost*$csf
+    $reason[$i] = "The number of items and the total cost were both multiplied by $qsf. Multiplying both quantities by the same factor keeps the unit rate the same."
+  } else {
+    $csf = $diffcostfactors[$i]
+    $rowcost[$i] = $origcost*$csf
+
+    $compareword[$i] = "lower" if ($csf<$qsf)
+    $compareword[$i] = "higher" if ($csf>$qsf)
+
+    $reason[$i] = "The number of items was multiplied by $qsf, but the total cost was multiplied by $csf. Since the multipliers are different, the unit rate is different. This creates a {$compareword[$i]} dollars-per-item rate than the original."
+  }
+
+  $rowfmt[$i] = rand(0,3)
+
+  $rowtext[$i] = "{$rowq[$i]} {$rowitems[$i]} were sold for &#36;{$rowcost[$i]}." if ($rowfmt[$i]==0)
+  $rowtext[$i] = "&#36;{$rowcost[$i]} was the total cost for {$rowq[$i]} {$rowitems[$i]}." if ($rowfmt[$i]==1)
+  $rowtext[$i] = "A customer bought {$rowq[$i]} {$rowitems[$i]} for &#36;{$rowcost[$i]}." if ($rowfmt[$i]==2)
+  $rowtext[$i] = "For &#36;{$rowcost[$i]}, a customer bought {$rowq[$i]} {$rowitems[$i]}." if ($rowfmt[$i]==3)
+
+  $answerlabel[$i] = ifthen($rowans[$i]==0,"Same unit rate","Different unit rate")
+  $codechar[$i] = ifthen($rowans[$i]==0,"S","D")
+  $rowfrac[$i] = makereducedfraction($rowcost[$i],$rowq[$i])
+}
+
+$answer = $codechar[0] . $codechar[1] . $codechar[2] . $codechar[3]
+$answerdisplay = $codechar[0] . " " . $codechar[1] . " " . $codechar[2] . " " . $codechar[3]
+
+$strflags = "ignore_case=1,remove_whitespace=1,ignore_commas=1"
+$answerboxsize = 6
+$readerlabel = "Hidden answer box. Click one cell in each row to choose Same unit rate or Different unit rate."
+$hidetips = true
+$showanswerstyle = "inline"
+
+// Read the student's previous submitted answer so the clickable boxes can stay filled after submit.
+$prevans = getstuans($stuanswers,$thisq)
+$prevans = "" if ($prevans=="NA")
+
+$prevcode = strtoupper($prevans)
+$prevcode = str_replace(" ","",$prevcode)
+$prevcode = str_replace(",","",$prevcode)
+
+for ($i=0..3) {
+  $prevchar[$i] = substr($prevcode,$i,1)
+
+  $sameSelected[$i] = ifthen($prevchar[$i]=="S","1","0")
+  $diffSelected[$i] = ifthen($prevchar[$i]=="D","1","0")
+
+  $sameCellBg[$i] = ifthen($prevchar[$i]=="S","#e8f4ff","#ffffff")
+  $diffCellBg[$i] = ifthen($prevchar[$i]=="D","#e8f4ff","#ffffff")
+
+  $sameOutline[$i] = ifthen($prevchar[$i]=="S","2px solid #2f80ed","none")
+  $diffOutline[$i] = ifthen($prevchar[$i]=="D","2px solid #2f80ed","none")
+
+  $sameFillBg[$i] = ifthen($prevchar[$i]=="S","#6fb6ff","#ffffff")
+  $diffFillBg[$i] = ifthen($prevchar[$i]=="D","#6fb6ff","#ffffff")
+
+  $sameFillBorder[$i] = ifthen($prevchar[$i]=="S","1px solid #2f80ed","1px solid #d0d0d0")
+  $diffFillBorder[$i] = ifthen($prevchar[$i]=="D","1px solid #2f80ed","1px solid #d0d0d0")
+}
+
+$overallfeedback = getfeedbackbasic(
+  "<div style='margin:6px 0 0 0; padding:6px; border:1px solid #b8d8b8; background:#f4fbf4; font-size:14pt; line-height:1.12;'><strong>Correct.</strong> All four statements were classified correctly.</div>",
+  "<div style='margin:6px 0 0 0; padding:6px; border:1px solid #d8c7a0; background:#fffaf0; font-size:14pt; line-height:1.12;'><strong>Your submission is not correct yet.</strong> Recheck each statement by finding the unit rate: total cost divided by number of items. Then compare each result to the original unit rate.</div>",
+  $thisq
+)
+
+$answerline = "<table style='border-collapse:collapse; margin:4px 0 8px 0; font-size:14pt;'>"
+$answerline = $answerline . "<tr>"
+
+for ($i=0..3) {
+  $n = $i+1
+  $answerline = $answerline . "<td style='border:1px solid #c9c9c9; padding:5px 9px;'><strong>Row $n:</strong> {$answerlabel[$i]} <span style='color:#555;'>({$codechar[$i]})</span></td>"
+}
+
+$answerline = $answerline . "</tr></table>"
+
+$showanswer = "<div style='font-size:14pt; line-height:1.18; max-width:1050px; font-family:Arial, sans-serif;'>"
+
+$showanswer = $showanswer . "<div style='font-size:15pt; font-weight:bold; margin:0 0 6px 0;'>Correct Answer</div>"
+
+$showanswer = $showanswer . $answerline
+
+$showanswer = $showanswer . "<div style='font-size:15pt; font-weight:bold; margin:8px 0 6px 0;'>Why?</div>"
+
+$showanswer = $showanswer . "<div style='border:1px solid #c9c9c9; padding:7px; margin:0 0 8px 0; background:#fafafa;'>"
+$showanswer = $showanswer . "<div style='font-weight:bold; margin:0 0 4px 0;'>Step 1: Find the original unit rate.</div>"
+$showanswer = $showanswer . "<div>The original statement has <span style='color:#a85a00; font-weight:bold;'>&#36;$origcost</span> for <span style='color:#1167b1; font-weight:bold;'>$origq items</span>.</div>"
+$showanswer = $showanswer . "<div style='margin-top:4px;'><span style='color:#a85a00; font-weight:bold;'>&#36;$origcost</span> &divide; <span style='color:#1167b1; font-weight:bold;'>$origq</span> = <span style='color:#1b7f3a; font-weight:bold;'>&#36;$rate for 1 item</span>.</div>"
+$showanswer = $showanswer . "<div style='margin-top:4px;'>Each row must be compared to <span style='color:#1b7f3a; font-weight:bold;'>&#36;$rate per item</span>.</div>"
+$showanswer = $showanswer . "</div>"
+
+$showanswer = $showanswer . "<table style='width:100%; border-collapse:collapse; font-size:14pt; line-height:1.16;'>"
+$showanswer = $showanswer . "<tr>"
+$showanswer = $showanswer . "<th style='border:1px solid #c9c9c9; padding:5px; text-align:left; width:24%;'>Row</th>"
+$showanswer = $showanswer . "<th style='border:1px solid #c9c9c9; padding:5px; text-align:left; width:17%;'>Correct Choice</th>"
+$showanswer = $showanswer . "<th style='border:1px solid #c9c9c9; padding:5px; text-align:left; width:25%;'>Unit Rate</th>"
+$showanswer = $showanswer . "<th style='border:1px solid #c9c9c9; padding:5px; text-align:left; width:34%;'>Reason</th>"
+$showanswer = $showanswer . "</tr>"
+
+for ($i=0..3) {
+  $n = $i+1
+  $showanswer = $showanswer . "<tr>"
+  $showanswer = $showanswer . "<td style='border:1px solid #c9c9c9; padding:5px; vertical-align:top;'><strong>$n.</strong> {$rowtext[$i]}</td>"
+  $showanswer = $showanswer . "<td style='border:1px solid #c9c9c9; padding:5px; vertical-align:top;'><strong>{$answerlabel[$i]}</strong></td>"
+  $showanswer = $showanswer . "<td style='border:1px solid #c9c9c9; padding:5px; vertical-align:top;'><span style='color:#a85a00; font-weight:bold;'>&#36;{$rowcost[$i]}</span> &divide; <span style='color:#1167b1; font-weight:bold;'>{$rowq[$i]}</span> = <span style='color:#1b7f3a; font-weight:bold;'>{$rowfrac[$i]} dollars per item</span></td>"
+  $showanswer = $showanswer . "<td style='border:1px solid #c9c9c9; padding:5px; vertical-align:top;'>{$reason[$i]}</td>"
+  $showanswer = $showanswer . "</tr>"
+}
+
+$showanswer = $showanswer . "</table>"
+
+$showanswer = $showanswer . "<div style='border:1px solid #d8c7a0; background:#fffaf0; padding:7px; margin:8px 0 0 0;'>"
+$showanswer = $showanswer . "<strong>Big idea:</strong> Same unit rate means the cost for 1 item is the same. Different unit rate means the cost for 1 item changed."
+$showanswer = $showanswer . "</div>"
+
+$showanswer = $showanswer . "</div>"
+
+
+Question Text:
+
+<style>
+  .anstext,
+  .answer,
+  input[type="text"],
+  input[type="number"],
+  textarea,
+  label,
+  select {
+    font-size:14pt !important;
+    line-height:1.12 !important;
+  }
+  .ur-hotspot-container p {
+    margin:0 !important;
+    padding:0 !important;
+  }
+  .ur-hotspot-container br {
+    display:none !important;
+  }
+</style>
+<div class="ur-hotspot-container" style="font-size:14pt; line-height:1.12; max-width:1100px; margin:0; font-family:Arial, sans-serif;">
+  <table style="width:100%; border-collapse:collapse; margin:0 0 4px 0;">
+    <tr>
+      <td style="vertical-align:top; padding:0 6px 0 0;">
+        <div style="margin:0 0 2px 0;"><strong>Statement:</strong> $origstatement</div>
+      </td>
+      <td style="width:1%; vertical-align:top; padding:0 0 0 6px; white-space:nowrap; text-align:right;">
+        <iframe src="https://www.desmos.com/testing/texas/scientific" width="350" height="360" frameborder="0" data-toggler="Calculator" data-toggler-hide="Hide Calculator"></iframe>
+      </td>
+    </tr>
+  </table>
+  <div style="margin:2px 0 8px 0;">Determine if each statement has the same unit rate as the original statement or a different unit rate. Click one box in each row.</div>
+  <table style="width:100%; border-collapse:collapse; margin:0 0 2px 0; table-layout:fixed;">
+    <tr>
+      <th style="border:1px solid #c9c9c9; padding:5px; text-align:left; width:48%;">Statement</th>
+      <th style="border:1px solid #c9c9c9; padding:5px; text-align:center; width:26%;">Same unit rate</th>
+      <th style="border:1px solid #c9c9c9; padding:5px; text-align:center; width:26%;">Different unit rate</th>
+    </tr>
+    <tr>
+      <td style="border:1px solid #c9c9c9; padding:5px; vertical-align:top;"><strong>1.</strong> $rowtext[0]</td>
+      <td class="ur-cell" data-row="0" data-val="S" data-selected="$sameSelected[0]" tabindex="0" role="button" aria-label="Row 1 Same unit rate"
+          onclick="var container=this; while(container && (' '+container.className+' ').indexOf(' ur-hotspot-container ')&lt;0){container=container.parentNode;} var row=this.getAttribute('data-row'); var cells=container.getElementsByClassName('ur-cell'); for(var i=0;i&lt;cells.length;i++){if(cells[i].getAttribute('data-row')==row){cells[i].setAttribute('data-selected','0'); cells[i].style.background='#ffffff'; cells[i].style.outline='none'; var f0=cells[i].getElementsByTagName('div')[0]; if(f0){f0.style.background='#ffffff'; f0.style.border='1px solid #d0d0d0';}}} this.setAttribute('data-selected','1'); this.style.background='#e8f4ff'; this.style.outline='2px solid #2f80ed'; var f=this.getElementsByTagName('div')[0]; if(f){f.style.background='#6fb6ff'; f.style.border='1px solid #2f80ed';} var ans=['','','','']; for(var j=0;j&lt;cells.length;j++){if(cells[j].getAttribute('data-selected')=='1'){ans[parseInt(cells[j].getAttribute('data-row'),10)]=cells[j].getAttribute('data-val');}} var inputs=container.getElementsByTagName('input'); for(var k=0;k&lt;inputs.length;k++){if(inputs[k].type=='text'){inputs[k].value=ans.join(''); var e=document.createEvent('HTMLEvents'); e.initEvent('change',true,false); inputs[k].dispatchEvent(e); var e2=document.createEvent('HTMLEvents'); e2.initEvent('input',true,false); inputs[k].dispatchEvent(e2);}} return false;"
+          style="border:1px solid #c9c9c9; padding:4px; height:46px; cursor:pointer; background:$sameCellBg[0]; outline:$sameOutline[0]; vertical-align:middle;">
+        <div style="height:38px; border:$sameFillBorder[0]; background:$sameFillBg[0];">&nbsp;</div>
+      </td>
+      <td class="ur-cell" data-row="0" data-val="D" data-selected="$diffSelected[0]" tabindex="0" role="button" aria-label="Row 1 Different unit rate"
+          onclick="var container=this; while(container && (' '+container.className+' ').indexOf(' ur-hotspot-container ')&lt;0){container=container.parentNode;} var row=this.getAttribute('data-row'); var cells=container.getElementsByClassName('ur-cell'); for(var i=0;i&lt;cells.length;i++){if(cells[i].getAttribute('data-row')==row){cells[i].setAttribute('data-selected','0'); cells[i].style.background='#ffffff'; cells[i].style.outline='none'; var f0=cells[i].getElementsByTagName('div')[0]; if(f0){f0.style.background='#ffffff'; f0.style.border='1px solid #d0d0d0';}}} this.setAttribute('data-selected','1'); this.style.background='#e8f4ff'; this.style.outline='2px solid #2f80ed'; var f=this.getElementsByTagName('div')[0]; if(f){f.style.background='#6fb6ff'; f.style.border='1px solid #2f80ed';} var ans=['','','','']; for(var j=0;j&lt;cells.length;j++){if(cells[j].getAttribute('data-selected')=='1'){ans[parseInt(cells[j].getAttribute('data-row'),10)]=cells[j].getAttribute('data-val');}} var inputs=container.getElementsByTagName('input'); for(var k=0;k&lt;inputs.length;k++){if(inputs[k].type=='text'){inputs[k].value=ans.join(''); var e=document.createEvent('HTMLEvents'); e.initEvent('change',true,false); inputs[k].dispatchEvent(e); var e2=document.createEvent('HTMLEvents'); e2.initEvent('input',true,false); inputs[k].dispatchEvent(e2);}} return false;"
+          style="border:1px solid #c9c9c9; padding:4px; height:46px; cursor:pointer; background:$diffCellBg[0]; outline:$diffOutline[0]; vertical-align:middle;">
+        <div style="height:38px; border:$diffFillBorder[0]; background:$diffFillBg[0];">&nbsp;</div>
+      </td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #c9c9c9; padding:5px; vertical-align:top;"><strong>2.</strong> $rowtext[1]</td>
+      <td class="ur-cell" data-row="1" data-val="S" data-selected="$sameSelected[1]" tabindex="0" role="button" aria-label="Row 2 Same unit rate"
+          onclick="var container=this; while(container && (' '+container.className+' ').indexOf(' ur-hotspot-container ')&lt;0){container=container.parentNode;} var row=this.getAttribute('data-row'); var cells=container.getElementsByClassName('ur-cell'); for(var i=0;i&lt;cells.length;i++){if(cells[i].getAttribute('data-row')==row){cells[i].setAttribute('data-selected','0'); cells[i].style.background='#ffffff'; cells[i].style.outline='none'; var f0=cells[i].getElementsByTagName('div')[0]; if(f0){f0.style.background='#ffffff'; f0.style.border='1px solid #d0d0d0';}}} this.setAttribute('data-selected','1'); this.style.background='#e8f4ff'; this.style.outline='2px solid #2f80ed'; var f=this.getElementsByTagName('div')[0]; if(f){f.style.background='#6fb6ff'; f.style.border='1px solid #2f80ed';} var ans=['','','','']; for(var j=0;j&lt;cells.length;j++){if(cells[j].getAttribute('data-selected')=='1'){ans[parseInt(cells[j].getAttribute('data-row'),10)]=cells[j].getAttribute('data-val');}} var inputs=container.getElementsByTagName('input'); for(var k=0;k&lt;inputs.length;k++){if(inputs[k].type=='text'){inputs[k].value=ans.join(''); var e=document.createEvent('HTMLEvents'); e.initEvent('change',true,false); inputs[k].dispatchEvent(e); var e2=document.createEvent('HTMLEvents'); e2.initEvent('input',true,false); inputs[k].dispatchEvent(e2);}} return false;"
+          style="border:1px solid #c9c9c9; padding:4px; height:46px; cursor:pointer; background:$sameCellBg[1]; outline:$sameOutline[1]; vertical-align:middle;">
+        <div style="height:38px; border:$sameFillBorder[1]; background:$sameFillBg[1];">&nbsp;</div>
+      </td>
+      <td class="ur-cell" data-row="1" data-val="D" data-selected="$diffSelected[1]" tabindex="0" role="button" aria-label="Row 2 Different unit rate"
+          onclick="var container=this; while(container && (' '+container.className+' ').indexOf(' ur-hotspot-container ')&lt;0){container=container.parentNode;} var row=this.getAttribute('data-row'); var cells=container.getElementsByClassName('ur-cell'); for(var i=0;i&lt;cells.length;i++){if(cells[i].getAttribute('data-row')==row){cells[i].setAttribute('data-selected','0'); cells[i].style.background='#ffffff'; cells[i].style.outline='none'; var f0=cells[i].getElementsByTagName('div')[0]; if(f0){f0.style.background='#ffffff'; f0.style.border='1px solid #d0d0d0';}}} this.setAttribute('data-selected','1'); this.style.background='#e8f4ff'; this.style.outline='2px solid #2f80ed'; var f=this.getElementsByTagName('div')[0]; if(f){f.style.background='#6fb6ff'; f.style.border='1px solid #2f80ed';} var ans=['','','','']; for(var j=0;j&lt;cells.length;j++){if(cells[j].getAttribute('data-selected')=='1'){ans[parseInt(cells[j].getAttribute('data-row'),10)]=cells[j].getAttribute('data-val');}} var inputs=container.getElementsByTagName('input'); for(var k=0;k&lt;inputs.length;k++){if(inputs[k].type=='text'){inputs[k].value=ans.join(''); var e=document.createEvent('HTMLEvents'); e.initEvent('change',true,false); inputs[k].dispatchEvent(e); var e2=document.createEvent('HTMLEvents'); e2.initEvent('input',true,false); inputs[k].dispatchEvent(e2);}} return false;"
+          style="border:1px solid #c9c9c9; padding:4px; height:46px; cursor:pointer; background:$diffCellBg[1]; outline:$diffOutline[1]; vertical-align:middle;">
+        <div style="height:38px; border:$diffFillBorder[1]; background:$diffFillBg[1];">&nbsp;</div>
+      </td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #c9c9c9; padding:5px; vertical-align:top;"><strong>3.</strong> $rowtext[2]</td>
+      <td class="ur-cell" data-row="2" data-val="S" data-selected="$sameSelected[2]" tabindex="0" role="button" aria-label="Row 3 Same unit rate"
+          onclick="var container=this; while(container && (' '+container.className+' ').indexOf(' ur-hotspot-container ')&lt;0){container=container.parentNode;} var row=this.getAttribute('data-row'); var cells=container.getElementsByClassName('ur-cell'); for(var i=0;i&lt;cells.length;i++){if(cells[i].getAttribute('data-row')==row){cells[i].setAttribute('data-selected','0'); cells[i].style.background='#ffffff'; cells[i].style.outline='none'; var f0=cells[i].getElementsByTagName('div')[0]; if(f0){f0.style.background='#ffffff'; f0.style.border='1px solid #d0d0d0';}}} this.setAttribute('data-selected','1'); this.style.background='#e8f4ff'; this.style.outline='2px solid #2f80ed'; var f=this.getElementsByTagName('div')[0]; if(f){f.style.background='#6fb6ff'; f.style.border='1px solid #2f80ed';} var ans=['','','','']; for(var j=0;j&lt;cells.length;j++){if(cells[j].getAttribute('data-selected')=='1'){ans[parseInt(cells[j].getAttribute('data-row'),10)]=cells[j].getAttribute('data-val');}} var inputs=container.getElementsByTagName('input'); for(var k=0;k&lt;inputs.length;k++){if(inputs[k].type=='text'){inputs[k].value=ans.join(''); var e=document.createEvent('HTMLEvents'); e.initEvent('change',true,false); inputs[k].dispatchEvent(e); var e2=document.createEvent('HTMLEvents'); e2.initEvent('input',true,false); inputs[k].dispatchEvent(e2);}} return false;"
+          style="border:1px solid #c9c9c9; padding:4px; height:46px; cursor:pointer; background:$sameCellBg[2]; outline:$sameOutline[2]; vertical-align:middle;">
+        <div style="height:38px; border:$sameFillBorder[2]; background:$sameFillBg[2];">&nbsp;</div>
+      </td>
+      <td class="ur-cell" data-row="2" data-val="D" data-selected="$diffSelected[2]" tabindex="0" role="button" aria-label="Row 3 Different unit rate"
+          onclick="var container=this; while(container && (' '+container.className+' ').indexOf(' ur-hotspot-container ')&lt;0){container=container.parentNode;} var row=this.getAttribute('data-row'); var cells=container.getElementsByClassName('ur-cell'); for(var i=0;i&lt;cells.length;i++){if(cells[i].getAttribute('data-row')==row){cells[i].setAttribute('data-selected','0'); cells[i].style.background='#ffffff'; cells[i].style.outline='none'; var f0=cells[i].getElementsByTagName('div')[0]; if(f0){f0.style.background='#ffffff'; f0.style.border='1px solid #d0d0d0';}}} this.setAttribute('data-selected','1'); this.style.background='#e8f4ff'; this.style.outline='2px solid #2f80ed'; var f=this.getElementsByTagName('div')[0]; if(f){f.style.background='#6fb6ff'; f.style.border='1px solid #2f80ed';} var ans=['','','','']; for(var j=0;j&lt;cells.length;j++){if(cells[j].getAttribute('data-selected')=='1'){ans[parseInt(cells[j].getAttribute('data-row'),10)]=cells[j].getAttribute('data-val');}} var inputs=container.getElementsByTagName('input'); for(var k=0;k&lt;inputs.length;k++){if(inputs[k].type=='text'){inputs[k].value=ans.join(''); var e=document.createEvent('HTMLEvents'); e.initEvent('change',true,false); inputs[k].dispatchEvent(e); var e2=document.createEvent('HTMLEvents'); e2.initEvent('input',true,false); inputs[k].dispatchEvent(e2);}} return false;"
+          style="border:1px solid #c9c9c9; padding:4px; height:46px; cursor:pointer; background:$diffCellBg[2]; outline:$diffOutline[2]; vertical-align:middle;">
+        <div style="height:38px; border:$diffFillBorder[2]; background:$diffFillBg[2];">&nbsp;</div>
+      </td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #c9c9c9; padding:5px; vertical-align:top;"><strong>4.</strong> $rowtext[3]</td>
+      <td class="ur-cell" data-row="3" data-val="S" data-selected="$sameSelected[3]" tabindex="0" role="button" aria-label="Row 4 Same unit rate"
+          onclick="var container=this; while(container && (' '+container.className+' ').indexOf(' ur-hotspot-container ')&lt;0){container=container.parentNode;} var row=this.getAttribute('data-row'); var cells=container.getElementsByClassName('ur-cell'); for(var i=0;i&lt;cells.length;i++){if(cells[i].getAttribute('data-row')==row){cells[i].setAttribute('data-selected','0'); cells[i].style.background='#ffffff'; cells[i].style.outline='none'; var f0=cells[i].getElementsByTagName('div')[0]; if(f0){f0.style.background='#ffffff'; f0.style.border='1px solid #d0d0d0';}}} this.setAttribute('data-selected','1'); this.style.background='#e8f4ff'; this.style.outline='2px solid #2f80ed'; var f=this.getElementsByTagName('div')[0]; if(f){f.style.background='#6fb6ff'; f.style.border='1px solid #2f80ed';} var ans=['','','','']; for(var j=0;j&lt;cells.length;j++){if(cells[j].getAttribute('data-selected')=='1'){ans[parseInt(cells[j].getAttribute('data-row'),10)]=cells[j].getAttribute('data-val');}} var inputs=container.getElementsByTagName('input'); for(var k=0;k&lt;inputs.length;k++){if(inputs[k].type=='text'){inputs[k].value=ans.join(''); var e=document.createEvent('HTMLEvents'); e.initEvent('change',true,false); inputs[k].dispatchEvent(e); var e2=document.createEvent('HTMLEvents'); e2.initEvent('input',true,false); inputs[k].dispatchEvent(e2);}} return false;"
+          style="border:1px solid #c9c9c9; padding:4px; height:46px; cursor:pointer; background:$sameCellBg[3]; outline:$sameOutline[3]; vertical-align:middle;">
+        <div style="height:38px; border:$sameFillBorder[3]; background:$sameFillBg[3];">&nbsp;</div>
+      </td>
+      <td class="ur-cell" data-row="3" data-val="D" data-selected="$diffSelected[3]" tabindex="0" role="button" aria-label="Row 4 Different unit rate"
+          onclick="var container=this; while(container && (' '+container.className+' ').indexOf(' ur-hotspot-container ')&lt;0){container=container.parentNode;} var row=this.getAttribute('data-row'); var cells=container.getElementsByClassName('ur-cell'); for(var i=0;i&lt;cells.length;i++){if(cells[i].getAttribute('data-row')==row){cells[i].setAttribute('data-selected','0'); cells[i].style.background='#ffffff'; cells[i].style.outline='none'; var f0=cells[i].getElementsByTagName('div')[0]; if(f0){f0.style.background='#ffffff'; f0.style.border='1px solid #d0d0d0';}}} this.setAttribute('data-selected','1'); this.style.background='#e8f4ff'; this.style.outline='2px solid #2f80ed'; var f=this.getElementsByTagName('div')[0]; if(f){f.style.background='#6fb6ff'; f.style.border='1px solid #2f80ed';} var ans=['','','','']; for(var j=0;j&lt;cells.length;j++){if(cells[j].getAttribute('data-selected')=='1'){ans[parseInt(cells[j].getAttribute('data-row'),10)]=cells[j].getAttribute('data-val');}} var inputs=container.getElementsByTagName('input'); for(var k=0;k&lt;inputs.length;k++){if(inputs[k].type=='text'){inputs[k].value=ans.join(''); var e=document.createEvent('HTMLEvents'); e.initEvent('change',true,false); inputs[k].dispatchEvent(e); var e2=document.createEvent('HTMLEvents'); e2.initEvent('input',true,false); inputs[k].dispatchEvent(e2);}} return false;"
+          style="border:1px solid #c9c9c9; padding:4px; height:46px; cursor:pointer; background:$diffCellBg[3]; outline:$diffOutline[3]; vertical-align:middle;">
+        <div style="height:38px; border:$diffFillBorder[3]; background:$diffFillBg[3];">&nbsp;</div>
+      </td>
+    </tr>
+  </table>
+  <div class="ur-answer-wrap" style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden;">$answerbox</div>
+  <div style="margin:0; padding:0; font-size:12pt; line-height:1; color:#666;">[SAB]</div>
+  <div style="margin:0; padding:0; line-height:1;">$overallfeedback</div>
+</div>
+
+
+Written Example:
+
+<div style="font-family: Arial, sans-serif; font-size: 14pt; line-height: 1.14; max-width: 1100px; margin: 0; color: #111;">
+  <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 6px 0; background: #f7f7f7;">
+    <div style="font-size: 16pt; font-weight: bold; margin: 0 0 4px 0;">Student Guide: Same Unit Rate or Different Unit Rate?</div>
+    <div style="margin: 0;">A unit rate tells the cost for <strong>1 item</strong>. To compare statements, find the unit rate for the original statement and for each row.</div>
+  </div>
+  <table style="width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0;">
+    <tbody>
+      <tr>
+        <td style="width: 58%; vertical-align: top; padding: 0 6px 0 0;">
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 6px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 4px 0;">1. Big Idea</div>
+            <div style="margin: 0 0 4px 0;">Two statements have the <strong>same unit rate</strong> if they have the same cost for 1 item.</div>
+            <div style="margin: 0;">Use this idea:</div>
+            <div style="margin: 4px 0 0 0; text-align: center;"><span style="color: #a85a00; font-weight: bold;">total cost</span> <span style="display: inline-block; vertical-align: middle; margin: 0 6px;"> <span style="display: block; border-bottom: 1px solid #111; padding: 0 6px;">total cost</span> <span style="display: block; padding: 0 6px;">number of items</span> </span> = <span style="color: #1b7f3a; font-weight: bold;">cost for 1 item</span></div>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 6px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 4px 0;">2. Step-by-Step Method</div>
+            <div style="margin: 0 0 3px 0;"><strong>Step 1:</strong> Find the original unit rate.</div>
+            <div style="margin: 0 0 3px 0;"><strong>Step 2:</strong> Find the row&rsquo;s unit rate.</div>
+            <div style="margin: 0 0 3px 0;"><strong>Step 3:</strong> Compare the two unit rates.</div>
+            <div style="margin: 0;"><strong>Step 4:</strong> If the cost for 1 item is the same, choose <strong>Same unit rate</strong>. If not, choose <strong>Different unit rate</strong>.</div>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 6px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 4px 0;">Original Example</div>
+            <div style="margin: 0 0 4px 0;"><strong>Statement:</strong> A customer bought <span style="color: #1167b1; font-weight: bold;">4 sandwiches</span> for <span style="color: #a85a00; font-weight: bold;">$24</span>.</div>
+            <div style="margin: 0 0 4px 0;">Find the unit rate:</div>
+            <div style="margin: 0 0 4px 0; text-align: center;"><span style="display: inline-block; vertical-align: middle;"> <span style="display: block; border-bottom: 1px solid #111; padding: 0 8px;"><span style="color: #a85a00; font-weight: bold;">$24</span></span> <span style="display: block; padding: 0 8px;"><span style="color: #1167b1; font-weight: bold;">4 sandwiches</span></span> </span> = <span style="color: #1b7f3a; font-weight: bold;">$6 per sandwich</span></div>
+            <div style="margin: 0;">Now every row must be compared to <span style="color: #1b7f3a; font-weight: bold;">$6 per item</span>.</div>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 4px 0;">3. Worked Examples</div>
+            <br><br>
+            <div style="border: 1px solid #d6d6d6; padding: 7px; margin: 0 0 6px 0; background: #fbfbfb;">
+              <div style="font-weight: bold; margin: 0 0 3px 0;">Example A: Same Unit Rate</div>
+              <div style="margin: 0 0 3px 0;">12 tacos were sold for $72.</div>
+              <div style="margin: 0 0 3px 0;"><span style="display: inline-block; vertical-align: middle;"> <span style="display: block; border-bottom: 1px solid #111; padding: 0 8px;"><span style="color: #a85a00; font-weight: bold;">$72</span></span> <span style="display: block; padding: 0 8px;"><span style="color: #1167b1; font-weight: bold;">12 tacos</span></span> </span> = <span style="color: #1b7f3a; font-weight: bold;">$6 per taco</span></div>
+              <div style="margin: 0;"><strong>Answer:</strong> Same unit rate, because $6 per item matches the original.</div>
+            </div>
+            <br>
+            <div style="border: 1px solid #d6d6d6; padding: 7px; margin: 0 0 6px 0; background: #fbfbfb;">
+              <div style="font-weight: bold; margin: 0 0 3px 0;">Example B: Different Unit Rate</div>
+              <div style="margin: 0 0 3px 0;">$50 was the total cost for 10 jars of jam.</div>
+              <div style="margin: 0 0 3px 0;"><span style="display: inline-block; vertical-align: middle;"> <span style="display: block; border-bottom: 1px solid #111; padding: 0 8px;"><span style="color: #a85a00; font-weight: bold;">$50</span></span> <span style="display: block; padding: 0 8px;"><span style="color: #1167b1; font-weight: bold;">10 jars</span></span> </span> = <span style="color: #1b7f3a; font-weight: bold;">$5 per jar</span></div>
+              <div style="margin: 0;"><strong>Answer:</strong> Different unit rate, because $5 per item does not match $6 per item.</div>
+            </div>
+            <br><br>
+            <div style="border: 1px solid #d6d6d6; padding: 7px; margin: 0; background: #fbfbfb;">
+              <div style="font-weight: bold; margin: 0 0 3px 0;">Example C: Different Unit Rate Even Though Both Numbers Changed</div>
+              <div style="margin: 0 0 3px 0;">For $60, a customer bought 8 muffins.</div>
+              <div style="margin: 0 0 3px 0;"><span style="display: inline-block; vertical-align: middle;"> <span style="display: block; border-bottom: 1px solid #111; padding: 0 8px;"><span style="color: #a85a00; font-weight: bold;">$60</span></span> <span style="display: block; padding: 0 8px;"><span style="color: #1167b1; font-weight: bold;">8 muffins</span></span> </span> = <span style="color: #1b7f3a; font-weight: bold;">$7.50 per muffin</span></div>
+              <div style="margin: 0;"><strong>Answer:</strong> Different unit rate. Both numbers changed, but the cost for 1 item changed too.</div>
+            </div>
+          </div>
+        </td>
+        <td style="width: 42%; vertical-align: top; padding: 0 0 0 6px;">
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 6px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 4px 0;">What to Look For</div>
+            <div style="margin: 0 0 4px 0;">Look for the relationship between:</div>
+            <div style="margin: 0 0 3px 0;"><span style="color: #1167b1; font-weight: bold;">number of items</span></div>
+            <div style="margin: 0 0 3px 0;"><span style="color: #a85a00; font-weight: bold;">total cost</span></div>
+            <div style="margin: 0;">Then compare the <span style="color: #1b7f3a; font-weight: bold;">unit rate</span>.</div>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 6px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 4px 0;">Similar Table Diagram</div>
+            <table style="width: 100%; border-collapse: collapse; margin: 0; font-size: 14pt; line-height: 1.12;">
+              <tbody>
+                <tr>
+                  <td style="border: 1px solid #c9c9c9; padding: 5px; width: 48%; background: #f7f7f7;"><strong>Statement</strong></td>
+                  <td style="border: 1px solid #c9c9c9; padding: 5px; width: 26%; text-align: center; background: #f7f7f7;"><strong>Same unit rate</strong></td>
+                  <td style="border: 1px solid #c9c9c9; padding: 5px; width: 26%; text-align: center; background: #f7f7f7;"><strong>Different unit rate</strong></td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #c9c9c9; padding: 5px;">12 tacos for $72</td>
+                  <td style="border: 1px solid #c9c9c9; padding: 5px; text-align: center; background: #e8f4ff;">✓</td>
+                  <td style="border: 1px solid #c9c9c9; padding: 5px; text-align: center;">&nbsp;</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #c9c9c9; padding: 5px;">10 jars for $50</td>
+                  <td style="border: 1px solid #c9c9c9; padding: 5px; text-align: center;">&nbsp;</td>
+                  <td style="border: 1px solid #c9c9c9; padding: 5px; text-align: center; background: #e8f4ff;">✓</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 6px 0; background: #fffaf0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 4px 0;">Shortcut</div>
+            <div style="margin: 0 0 4px 0;">If both quantities are multiplied by the <strong>same number</strong>, the unit rate stays the same.</div>
+            <div style="margin: 0 0 3px 0;">Original: 4 items for $24</div>
+            <div style="margin: 0 0 3px 0;">Multiply both by 3:</div>
+            <div style="margin: 0;"><span style="color: #1167b1; font-weight: bold;">12 items</span> for <span style="color: #a85a00; font-weight: bold;">$72</span> &rarr; same unit rate.</div>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 6px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 4px 0;">Shortcut Example</div>
+            <div style="margin: 0 0 3px 0;">Original: 5 items for $40</div>
+            <div style="margin: 0 0 3px 0;">Row: 15 items for $120</div>
+            <div style="margin: 0 0 3px 0;"><span style="color: #1167b1; font-weight: bold;">5 &rarr; 15</span> means multiply by 3.</div>
+            <div style="margin: 0 0 3px 0;"><span style="color: #a85a00; font-weight: bold;">40 &rarr; 120</span> also means multiply by 3.</div>
+            <div style="margin: 0;"><strong>Answer:</strong> Same unit rate.</div>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 6px 0; background: #fff7f7;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 4px 0;">Common Mistakes</div>
+            <div style="margin: 0 0 4px 0;"><strong>Mistake 1:</strong> Comparing only the total costs.</div>
+            <div style="margin: 0 0 4px 0;">A higher total cost does not always mean a different unit rate.</div>
+            <div style="margin: 0 0 4px 0;"><strong>Mistake 2:</strong> Comparing only the number of items.</div>
+            <div style="margin: 0 0 4px 0;">More items can still have the same unit rate.</div>
+            <div style="margin: 0 0 4px 0;"><strong>Mistake 3:</strong> Thinking both numbers changing means the rate stayed the same.</div>
+            <div style="margin: 0;">The rate is the same only when the cost for 1 item is the same.</div>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0; background: #f4fbf4;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 4px 0;">Final Check</div>
+            <div style="margin: 0 0 4px 0;">Before choosing, ask:</div>
+            <div style="margin: 0 0 3px 0;">Did I divide <span style="color: #a85a00; font-weight: bold;">total cost</span> by <span style="color: #1167b1; font-weight: bold;">number of items</span>?</div>
+            <div style="margin: 0 0 3px 0;">Did I compare the row&rsquo;s unit rate to the original unit rate?</div>
+            <div style="margin: 0;">If the <span style="color: #1b7f3a; font-weight: bold;">cost for 1 item</span> matches, choose <strong>Same unit rate</strong>. If it does not match, choose <strong>Different unit rate</strong>.</div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
