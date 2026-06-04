@@ -1,0 +1,421 @@
+Multipart with Calculator and Graphing and Written Example
+
+Common Control:
+
+$anstypes = array("numfunc","draw")
+$answeights = array(.45,.55)
+
+// Arithmetic sequences with larger integer values.
+// Direction is equally likely:
+// 0 = increasing
+// 1 = decreasing
+$dir = rand(0,1)
+
+// Three equally likely common-difference size families:
+// 0 = smaller change
+// 1 = medium change
+// 2 = larger change
+$family = rand(0,2)
+
+$dmag = randfrom(array(10,15,20)) if ($family==0)
+$dmag = randfrom(array(25,30,35)) if ($family==1)
+$dmag = randfrom(array(40,45,50)) if ($family==2)
+
+$d = $dmag if ($dir==0)
+$d = -$dmag if ($dir==1)
+
+$trend = ifthen($d>0,"increasing","decreasing")
+$signword = ifthen($d>0,"positive","negative")
+
+// Use later term numbers like k_8, k_9, k_10, k_11.
+$startn = randfrom(array(5,6,7,8,9,10))
+$endn = $startn + 3
+
+// Start value is a multiple of 5 so graph snapping is clean.
+// For decreasing sequences, start high enough so all four displayed values stay positive.
+if ($d>0) {
+  $firstval = 5*rand(1,16)
+} else {
+  $minfirst = 3*$dmag + 10
+  $minfirstmult = ceil($minfirst/5)
+  $firstval = 5*rand($minfirstmult,50)
+}
+
+// Build four consecutive displayed terms.
+for ($i=0..3) {
+  $termn[$i] = $startn + $i
+  $termval[$i] = $firstval + $d*$i
+  $drawanswer[$i] = "{$termn[$i]},{$termval[$i]}"
+}
+
+// Explicit formula: k_n = d*n + b
+$b = $firstval - $d*$startn
+
+$answer[0] = "$d*n+($b)"
+$variables[0] = "n"
+$domain[0] = "1,16,integers"
+$readerlabel[0] = "Enter the explicit formula expression in terms of n."
+$answerboxsize[0] = 22
+
+// Drawing answer.
+// Dots are given as x,y strings.
+$answers[1] = $drawanswer
+
+// Use the older drawing tool and allow dots only.
+$answerformat[1] = "dot"
+
+// Dynamic drawing graph setup.
+// x starts at -1 so the y-axis labels have room.
+// y starts at -20 so the x-axis labels have room below the axis.
+$xminnum = -1
+$xmaxnum = 14
+$yminnum = -20
+
+// Find the largest displayed term value.
+$maxterm = $termval[0]
+for ($i=1..3) {
+  $maxterm = $termval[$i] if ($termval[$i]>$maxterm)
+}
+
+// Round the top of the graph up to the next 50 after adding a little space.
+// Examples:
+// max 190 -> ymax 250
+// max 225 -> ymax 250
+// max 250 -> ymax 300
+$ymaxRaw = $maxterm + 20
+$ymaxnum = 50*ceil($ymaxRaw/50)
+$ymaxnum = 100 if ($ymaxnum<100)
+
+// Snap x to whole-number term numbers and y to multiples of 5.
+// Grid lines show every 10, so values like 190 are graphable.
+$snaptogrid[1] = "1:5"
+
+// Use getsnapwidthheight so snapped dots land cleanly on pixels.
+$drawsize = getsnapwidthheight($xminnum,$xmaxnum,$yminnum,$ymaxnum,650,520,$snaptogrid[1])
+$drawwidth = $drawsize[0]
+$drawheight = $drawsize[1]
+
+// Drawing grid format:
+// xmin,xmax,ymin,ymax,xlabelspacing:xgridspacing,ylabelspacing:ygridspacing,width,height
+// Text axis labels were removed to prevent NaN drawing-score warnings.
+// x labels every 1, x grid every 1.
+// y labels every 50, y grid every 10.
+$grid[1] = "-1,14,-20,$ymaxnum,1:1,50:10,$drawwidth,$drawheight"
+
+$readerlabel[1] = "Plot the four sequence points on the coordinate plane."
+
+$hidetips = true
+$showanswerstyle = "inline"
+
+// Display line for given sequence terms.
+$givenline = "`k_{$termn[0]} = {$termval[0]}`,&nbsp;&nbsp; "
+$givenline = $givenline . "`k_{$termn[1]} = {$termval[1]}`,&nbsp;&nbsp; "
+$givenline = $givenline . "`k_{$termn[2]} = {$termval[2]}`,&nbsp;&nbsp; "
+$givenline = $givenline . "`k_{$termn[3]} = {$termval[3]}`"
+
+// Display formulas.
+$formula_anchor_disp = makepretty("k_n = {$firstval} + {$d}(n - {$startn})")
+$formula_slope_disp = makepretty("k_n = {$d}n + ({$b})")
+
+// Common wrong formula patterns.
+$wrong_first_as_k1 = "{$firstval}+{$d}*(n-1)"
+$wrong_first_as_intercept = "{$d}*n+{$firstval}"
+$opposited = -1*$d
+$wrong_sign = "{$opposited}*n+({$b})"
+
+$wrongfeedbackA = array(
+  "<div style='margin:4px 0; padding:6px; border:1px solid #d8c7a0; background:#fffaf0; font-size:13pt; line-height:1.15;'><strong>Check the starting term number.</strong> The first term shown is `k_{$startn}`, not `k_1`. Start from `k_{$startn} = {$firstval}` or work backward to find `k_1`.</div>",
+  "<div style='margin:4px 0; padding:6px; border:1px solid #d8c7a0; background:#fffaf0; font-size:13pt; line-height:1.15;'><strong>Check the y-intercept.</strong> It looks like you may have used the first shown value as the y-intercept. The first shown value belongs to term number {$startn}, not term number 0.</div>",
+  "<div style='margin:4px 0; padding:6px; border:1px solid #d8c7a0; background:#fffaf0; font-size:13pt; line-height:1.15;'><strong>Check the sign of the common difference.</strong> The sequence is {$trend}, so the common difference should be {$signword}.</div>"
+)
+
+$partialA = array($wrong_first_as_k1,0,$wrong_first_as_intercept,0,$wrong_sign,0)
+
+$defaultfeedbackA = "<div style='margin:4px 0; padding:6px; border:1px solid #d8c7a0; background:#fffaf0; font-size:13pt; line-height:1.15;'><strong>Formula check:</strong> Find the common difference, then use one known term. A useful form is `k_n = k_a + d(n-a)`, where `a` is the term number you are starting from.</div>"
+
+$partAfeedback = ""
+$partBfeedback = ""
+
+if (isset($scoreiscorrect)) {
+  if ($scoreiscorrect[$thisq][0]==1) {
+    $partAfeedback = "<div style='margin:4px 0; padding:6px; border:1px solid #b8d8b8; background:#f4fbf4; font-size:13pt; line-height:1.15;'><strong>Part A correct.</strong> Your explicit formula matches the sequence.</div>"
+  } elseif ($partattemptn[0]>0) {
+    $stuA = getstuans($stuanswers,$thisq,0)
+    $partAfeedback = getfeedbacktxtnumfunc($stuA,$partialA,$wrongfeedbackA,$defaultfeedbackA,"n","","|.001","1,16,integers")
+  }
+
+  if ($scoreiscorrect[$thisq][1]==1) {
+    $partBfeedback = "<div style='margin:4px 0; padding:6px; border:1px solid #b8d8b8; background:#f4fbf4; font-size:13pt; line-height:1.15;'><strong>Part B correct.</strong> You plotted the four sequence points correctly.</div>"
+  } elseif ($partattemptn[1]>0) {
+    $stuB = getstuans($stuanswers,$thisq,1)
+    $dots = getdotsdata($stuB,$grid[1],$snaptogrid[1])
+    $dots = array() if (!is_array($dots))
+
+    $dotcount = count($dots)
+    $matchcount = 0
+    $shiftcount = 0
+    $swapcount = 0
+
+    if ($dotcount>0) {
+      for ($i=0..3) {
+        $found = 0
+        $foundshift = 0
+        $foundswap = 0
+
+        for ($j=0..$dotcount-1) {
+          $dx = abs($dots[$j][0] - $termn[$i])
+          $dy = abs($dots[$j][1] - $termval[$i])
+
+          $dxshift = abs($dots[$j][0] - ($i+1))
+          $dyshift = abs($dots[$j][1] - $termval[$i])
+
+          $dxswap = abs($dots[$j][0] - $termval[$i])
+          $dyswap = abs($dots[$j][1] - $termn[$i])
+
+          $found = 1 if ($dx<.25 && $dy<2.6)
+          $foundshift = 1 if ($dxshift<.25 && $dyshift<2.6)
+          $foundswap = 1 if ($dxswap<.25 && $dyswap<2.6)
+        }
+
+        $matchcount = $matchcount + $found
+        $shiftcount = $shiftcount + $foundshift
+        $swapcount = $swapcount + $foundswap
+      }
+    }
+
+    if ($dotcount<4) {
+      $partBfeedback = "<div style='margin:4px 0; padding:6px; border:1px solid #d8c7a0; background:#fffaf0; font-size:13pt; line-height:1.15;'><strong>Graph check:</strong> Plot all four sequence points. Each point should be `(term number, term value)`.</div>"
+    } elseif ($shiftcount>=3) {
+      $partBfeedback = "<div style='margin:4px 0; padding:6px; border:1px solid #d8c7a0; background:#fffaf0; font-size:13pt; line-height:1.15;'><strong>Graph check:</strong> It looks like you plotted the points at term numbers 1, 2, 3, and 4. Use the actual subscripts shown: `k_{$termn[0]}`, `k_{$termn[1]}`, `k_{$termn[2]}`, and `k_{$termn[3]}`.</div>"
+    } elseif ($swapcount>=3) {
+      $partBfeedback = "<div style='margin:4px 0; padding:6px; border:1px solid #d8c7a0; background:#fffaf0; font-size:13pt; line-height:1.15;'><strong>Graph check:</strong> It looks like the coordinates may be reversed. Plot each point as `(term number, term value)`, not `(term value, term number)`.</div>"
+    } elseif ($matchcount>0) {
+      $partBfeedback = "<div style='margin:4px 0; padding:6px; border:1px solid #d8c7a0; background:#fffaf0; font-size:13pt; line-height:1.15;'><strong>Graph check:</strong> You have {$matchcount} of the 4 required points correct. Recheck the remaining term numbers and term values.</div>"
+    } else {
+      $partBfeedback = "<div style='margin:4px 0; padding:6px; border:1px solid #d8c7a0; background:#fffaf0; font-size:13pt; line-height:1.15;'><strong>Graph check:</strong> Plot the four ordered pairs `(n, k_n)`. The x-coordinate is the term number, and the y-coordinate is the term value.</div>"
+    }
+  }
+}
+
+// For the written explanation.
+$incSeqGuidePts1 = array("dot,1,20,closed,blue","dot,2,30,closed,blue","dot,3,40,closed,blue","dot,4,50,closed,blue")
+$incSeqGuideGraph1 = showplot($incSeqGuidePts1,-1,5,0,60,"1:20:Term Number:Term Value","1:10",255,185)
+$incSeqGuideGraph1 = replacealttext($incSeqGuideGraph1,"Graph of the arithmetic sequence points (1,20), (2,30), (3,40), and (4,50).")
+
+$incSeqGuidePts2 = array("dot,8,15,closed,blue","dot,9,50,closed,blue","dot,10,85,closed,blue","dot,11,120,closed,blue")
+$incSeqGuideGraph2 = showplot($incSeqGuidePts2,-1,12,0,150,"1:50:Term Number:Term Value","1:10",270,185)
+$incSeqGuideGraph2 = replacealttext($incSeqGuideGraph2,"Graph of the arithmetic sequence points (8,15), (9,50), (10,85), and (11,120).")
+
+$incSeqGuidePts3 = array("dot,5,40,closed,blue","dot,6,90,closed,blue","dot,7,140,closed,blue","dot,8,190,closed,blue")
+$incSeqGuideGraph3 = showplot($incSeqGuidePts3,-1,9,0,220,"1:50:Term Number:Term Value","1:10",270,185)
+$incSeqGuideGraph3 = replacealttext($incSeqGuideGraph3,"Graph of the arithmetic sequence points (5,40), (6,90), (7,140), and (8,190).")
+
+
+// Build a solution graph for showanswer.
+for ($i=0..3) {
+  $soldots[$i] = "dot,{$termn[$i]},{$termval[$i]},closed,blue"
+}
+
+$solgraph = showplot($soldots,-1,14,-20,$ymaxnum,"1:50","1:10",520,360)
+$solgraph = replacealttext($solgraph,"Correct graph of the four sequence points.")
+
+// Correct points table.
+$pointtable = "<table style='border-collapse:collapse; font-size:13pt; margin:4px 0;'>"
+$pointtable = $pointtable . "<tr><th style='border:1px solid #c9c9c9; padding:4px 8px;'>Term</th><th style='border:1px solid #c9c9c9; padding:4px 8px;'>Point</th></tr>"
+for ($i=0..3) {
+  $pointtable = $pointtable . "<tr><td style='border:1px solid #c9c9c9; padding:4px 8px;'>`k_{$termn[$i]}`</td><td style='border:1px solid #c9c9c9; padding:4px 8px;'>`({$termn[$i]}, {$termval[$i]})`</td></tr>"
+}
+$pointtable = $pointtable . "</table>"
+
+// Show answer: answer first, then rationale.
+$showanswer = "<div style='font-family:Arial, sans-serif; font-size:13pt; line-height:1.18; max-width:1050px;'>"
+
+$showanswer = $showanswer . "<div style='font-size:14pt; font-weight:bold; margin:0 0 5px 0;'>Correct Answer</div>"
+$showanswer = $showanswer . "<div style='margin:0 0 4px 0;'><strong>Explicit formula:</strong> `{$formula_anchor_disp}`</div>"
+$showanswer = $showanswer . "<div style='margin:0 0 6px 0;'><strong>Equivalent simplified form:</strong> `{$formula_slope_disp}`</div>"
+$showanswer = $showanswer . "<div style='margin:0 0 4px 0;'><strong>Points to graph:</strong></div>"
+$showanswer = $showanswer . $pointtable
+$showanswer = $showanswer . "<div style='margin:6px 0;'>$solgraph</div>"
+
+$showanswer = $showanswer . "<div style='font-size:14pt; font-weight:bold; margin:8px 0 5px 0;'>Rationale</div>"
+
+$showanswer = $showanswer . "<div style='border:1px solid #c9c9c9; padding:7px; background:#fafafa; margin:0 0 6px 0;'>"
+$showanswer = $showanswer . "<div style='margin:0 0 4px 0;'><strong>Step 1:</strong> Identify the common difference.</div>"
+$showanswer = $showanswer . "<div>The term values are <span style='color:#1b7f3a; font-weight:bold;'>{$trend}</span>. The common difference is <span style='color:#1b7f3a; font-weight:bold;'>`{$d}`</span>.</div>"
+$showanswer = $showanswer . "</div>"
+
+$showanswer = $showanswer . "<div style='border:1px solid #c9c9c9; padding:7px; background:#fafafa; margin:0 0 6px 0;'>"
+$showanswer = $showanswer . "<div style='margin:0 0 4px 0;'><strong>Step 2:</strong> Use the first displayed term as an anchor.</div>"
+$showanswer = $showanswer . "<div>The first displayed term is <span style='color:#a85a00; font-weight:bold;'>`k_{$startn} = {$firstval}`</span>, so start from that term instead of pretending it is `k_1`.</div>"
+$showanswer = $showanswer . "</div>"
+
+$showanswer = $showanswer . "<div style='border:1px solid #c9c9c9; padding:7px; background:#fafafa; margin:0 0 6px 0;'>"
+$showanswer = $showanswer . "<div style='margin:0 0 4px 0;'><strong>Step 3:</strong> Write the explicit formula.</div>"
+$showanswer = $showanswer . "<div>Using `k_n = k_a + d(n-a)`, substitute `k_{$startn} = {$firstval}` and `d = {$d}`: `{$formula_anchor_disp}`.</div>"
+$showanswer = $showanswer . "</div>"
+
+$showanswer = $showanswer . "<div style='border:1px solid #c9c9c9; padding:7px; background:#fafafa; margin:0;'>"
+$showanswer = $showanswer . "<div style='margin:0 0 4px 0;'><strong>Step 4:</strong> Graph the sequence.</div>"
+$showanswer = $showanswer . "<div>Use each term number as the x-coordinate and each term value as the y-coordinate. Graph the four separate points. Do not connect them with a line.</div>"
+$showanswer = $showanswer . "</div>"
+
+$showanswer = $showanswer . "</div>"
+
+
+Question Text:
+
+<style>
+  .anstext,
+  .answer,
+  input[type="text"],
+  input[type="number"],
+  textarea,
+  label,
+  select {
+    font-size:14pt !important;
+    line-height:1.12 !important;
+  }
+</style>
+
+<div style="font-family:Arial, sans-serif; font-size:14pt; line-height:1.12; max-width:1100px; margin:0;">
+  <table style="width:100%; border-collapse:collapse; margin:0 0 6px 0;">
+    <tr>
+      <td style="vertical-align:top; padding:0 6px 0 0;">
+        <div style="margin:0 0 6px 0;">
+          <strong>Write the explicit formula you can use to represent the terms of the sequence, then represent the sequence on the coordinate plane.</strong>
+        </div>
+        <div style="margin:0; font-size:14pt;">
+          $givenline
+        </div>
+      </td>
+      <td style="width:1%; vertical-align:top; padding:0 0 0 6px; white-space:nowrap; text-align:right;">
+        <iframe src="https://www.desmos.com/testing/texas/scientific" width="350" height="360" frameborder="0" data-toggler="Calculator" data-toggler-hide="Hide Calculator"></iframe>
+      </td>
+    </tr>
+  </table>
+
+  <div style="border:1px solid #d0d0d0; padding:7px; margin:0 0 8px 0; background:#fafafa;">
+    <div style="margin:0 0 5px 0;"><strong>Part A.</strong> Write an explicit formula.</div>
+    <div style="margin:0;">
+      `k_n =` $answerbox[0]
+    </div>
+  </div>
+
+  <div style="border:1px solid #d0d0d0; padding:7px; margin:0 0 8px 0; background:#ffffff;">
+    <div style="margin:0 0 5px 0;"><strong>Part B.</strong> Graph the four sequence terms.</div>
+    <div style="margin:0 0 6px 0;">
+      Plot each term as an ordered pair: <strong>(term number, term value)</strong>. Do not connect the points.
+    </div>
+    <div style="margin:0;">
+      $answerbox[1]
+    </div>
+  </div>
+
+  <div style="margin:0; padding:0;">
+    $partAfeedback
+    $partBfeedback
+  </div>
+</div>
+
+
+Written Example:
+
+<div style="font-family: Arial, sans-serif; font-size: 14pt; line-height: 1.16; max-width: 1100px; margin: 0 auto; color: #111;">
+  <div style="border: 1px solid #999; padding: 8px; margin: 0 0 8px 0; background: #f7f7f7;">
+    <div style="font-size: 16pt; font-weight: bold; margin: 0 0 4px 0;">Student Help Guide: Explicit Formulas for Increasing Sequences</div>
+    <div style="margin: 0;"><strong>Big idea:</strong> In this problem, the term values increase by the same amount each step. That repeated increase is the <span style="color: #1b7f3a; font-weight: bold;">common difference</span>. Graph each term as a separate point: <span style="color: #1167b1; font-weight: bold;">term number</span> on the x-axis and term value on the y-axis.</div>
+  </div>
+  <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+    <tbody>
+      <tr>
+        <td style="width: 58%; vertical-align: top; padding: 0 6px 0 0;">
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Step-by-Step Method</div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14pt;">
+              <tbody>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; width: 26%; font-weight: bold;">Step 1</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Subtract consecutive term values to find the <span style="color: #1b7f3a; font-weight: bold;">common difference</span>.</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; font-weight: bold;">Step 2</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Choose one known term as your anchor, such as <span style="color: #a85a00; font-weight: bold;">k<sub>8</sub> = 15</span>.</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; font-weight: bold;">Step 3</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Use <strong>k<sub>n</sub> = k<sub>a</sub> + d(n &minus; a)</strong>, where a is the term number you start from.</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; font-weight: bold;">Step 4</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Graph each term as <strong>(term number, term value)</strong>. Do not connect the points.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0;">
+            <div style="font-weight: bold; color: #333; margin: 0 0 4px 0;">Example 1: Starts at k<sub>1</sub></div>
+            <div style="margin: 0 0 4px 0;">Given: k<sub>1</sub> = 20, k<sub>2</sub> = 30, k<sub>3</sub> = 40, k<sub>4</sub> = 50</div>
+            <div style="margin: 0 0 4px 0;">Common difference: <span style="color: #1b7f3a; font-weight: bold;">+10</span></div>
+            <div style="margin: 0 0 4px 0;">Formula: <strong>k<sub>n</sub> = 20 + 10(n &minus; 1)</strong></div>
+            <div style="margin: 0 0 4px 0;">Points: (1, 20), (2, 30), (3, 40), (4, 50)</div>
+            <div style="margin: 4px 0 0 0;">$incSeqGuideGraph1</div>
+          </div>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0;">
+            <div style="font-weight: bold; color: #333; margin: 0 0 4px 0;">Example 2: Starts at a Later Term</div>
+            <div style="margin: 0 0 4px 0;">Given: k<sub>8</sub> = 15, k<sub>9</sub> = 50, k<sub>10</sub> = 85, k<sub>11</sub> = 120</div>
+            <div style="margin: 0 0 4px 0;">Common difference: <span style="color: #1b7f3a; font-weight: bold;">50 &minus; 15 = 35</span></div>
+            <div style="margin: 0 0 4px 0;">Use the anchor k<sub>8</sub> = 15: <strong>k<sub>n</sub> = 15 + 35(n &minus; 8)</strong></div>
+            <div style="margin: 0 0 4px 0;">Points: (8, 15), (9, 50), (10, 85), (11, 120)</div>
+            <div style="margin: 4px 0 0 0;">$incSeqGuideGraph2</div>
+          </div>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0;">
+            <div style="font-weight: bold; color: #333; margin: 0 0 4px 0;">Example 3: Larger Scale on the Graph</div>
+            <div style="margin: 0 0 4px 0;">Given: k<sub>5</sub> = 40, k<sub>6</sub> = 90, k<sub>7</sub> = 140, k<sub>8</sub> = 190</div>
+            <div style="margin: 0 0 4px 0;">Common difference: <span style="color: #1b7f3a; font-weight: bold;">+50</span></div>
+            <div style="margin: 0 0 4px 0;">Use the anchor k<sub>5</sub> = 40: <strong>k<sub>n</sub> = 40 + 50(n &minus; 5)</strong></div>
+            <div style="margin: 0 0 4px 0;">Points: (5, 40), (6, 90), (7, 140), (8, 190)</div>
+            <div style="margin: 4px 0 0 0;">$incSeqGuideGraph3</div>
+          </div>
+        </td>
+        <td style="width: 42%; vertical-align: top; padding: 0 0 0 6px;">
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0; background: #fffaf0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">What to Look For</div>
+            <div style="margin: 0 0 4px 0;">1. The values should increase by the same amount each time.</div>
+            <div style="margin: 0 0 4px 0;">2. The <span style="color: #1b7f3a; font-weight: bold;">common difference</span> is the rate of change.</div>
+            <div style="margin: 0 0 4px 0;">3. The first term shown may not be k<sub>1</sub>.</div>
+            <div style="margin: 0;">4. The graph may count by 10s, 25s, or 50s on the y-axis.</div>
+          </div>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0; background: #f4fbf4;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Shortcut</div>
+            <div style="margin: 0 0 4px 0;">Use the given term instead of working backward:</div>
+            <div style="margin: 0 0 4px 0; text-align: center; font-weight: bold;">k<sub>n</sub> = k<sub>a</sub> + d(n &minus; a)</div>
+            <div style="margin: 0;"><span style="color: #1167b1; font-weight: bold;">a</span> is the term number you start from, and <span style="color: #1b7f3a; font-weight: bold;">d</span> is the common difference.</div>
+          </div>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Shortcut Example</div>
+            <div style="margin: 0 0 4px 0;">Given k<sub>8</sub> = 15 and d = 35:</div>
+            <div style="margin: 0 0 4px 0;">k<sub>n</sub> = 15 + 35(n &minus; 8)</div>
+            <div style="margin: 0 0 4px 0;">Check k<sub>9</sub>: 15 + 35(9 &minus; 8) = 50</div>
+            <div style="margin: 0;">The formula works because it produces the next term.</div>
+          </div>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0; background: #fff5f5;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Common Mistakes</div>
+            <div style="margin: 0 0 5px 0;"><strong>Mistake 1:</strong> Treating k<sub>8</sub> as if it were k<sub>1</sub>.</div>
+            <div style="margin: 0 0 5px 0;"><strong>Mistake 2:</strong> Using the first value as the y-intercept.</div>
+            <div style="margin: 0 0 5px 0;"><strong>Mistake 3:</strong> Graphing the points at 1, 2, 3, 4 instead of using the actual subscripts.</div>
+            <div style="margin: 0 0 5px 0;"><strong>Mistake 4:</strong> Reversing coordinates. Use (term number, term value).</div>
+            <div style="margin: 0;"><strong>Mistake 5:</strong> Ignoring the y-axis scale when term values are large.</div>
+          </div>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0; background: #f7f7ff;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Final Check</div>
+            <div style="margin: 0 0 4px 0;">Substitute each given term number into your formula.</div>
+            <div style="margin: 0 0 4px 0;">The formula should produce every term value shown.</div>
+            <div style="margin: 0 0 4px 0;">Your graph should have exactly four separate dots.</div>
+            <div style="margin: 0;">Each dot should match one ordered pair: <strong>(n, k<sub>n</sub>)</strong>.</div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
