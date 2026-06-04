@@ -1,0 +1,482 @@
+﻿Template for multipart MOM problem
+
+
+
+
+Common control:
+
+$anstypes = array("choices","choices")
+$answeights = array(.4,.6)
+
+
+// Student guide example graphs
+$guide_xmin = -7
+$guide_xmax = 7
+$guide_ymin = -7
+$guide_ymax = 7
+$guide_labels = "2:2:x:y"
+$guide_grid = 1
+$guide_w = 165
+$guide_h = 165
+
+
+$guide_lin = showplot("x+1,black,-6,6,arrow,arrow,2",$guide_xmin,$guide_xmax,$guide_ymin,$guide_ymax,$guide_labels,$guide_grid,$guide_w,$guide_h)
+$guide_lin = replacealttext($guide_lin,"A non-vertical line. It is a function because each x-value has one y-value.")
+
+
+$guide_vert = showplot("x=2,black,-6,6,arrow,arrow,2",$guide_xmin,$guide_xmax,$guide_ymin,$guide_ymax,$guide_labels,$guide_grid,$guide_w,$guide_h)
+$guide_vert = replacealttext($guide_vert,"A vertical line. It is not a function because one x-value has many y-values.")
+
+
+$guide_quad = showplot("(x+1)^2-4,black,-4,2,arrow,arrow,2",$guide_xmin,$guide_xmax,$guide_ymin,$guide_ymax,$guide_labels,$guide_grid,$guide_w,$guide_h)
+$guide_quad = replacealttext($guide_quad,"A vertical parabola. It is a function because each x-value has one y-value.")
+
+
+$guide_side = showplot("[(t)^2-5,t],black,-3,3,arrow,arrow,2",$guide_xmin,$guide_xmax,$guide_ymin,$guide_ymax,$guide_labels,$guide_grid,$guide_w,$guide_h)
+$guide_side = replacealttext($guide_side,"A sideways parabola. It is not a function because some x-values have two y-values.")
+
+
+$guide_exp = showplot("2^(x-1)-3,black,-3,4,arrow,arrow,2",$guide_xmin,$guide_xmax,$guide_ymin,$guide_ymax,$guide_labels,$guide_grid,$guide_w,$guide_h)
+$guide_exp = replacealttext($guide_exp,"An exponential curve. It is a function because each x-value has one y-value.")
+
+
+$guide_twoexp_funcs = array(
+  "2^(x-1),black,-4,3,arrow,arrow,2",
+  "-(2^(x-1)),black,-4,3,arrow,arrow,2"
+)
+$guide_twoexp = showplot($guide_twoexp_funcs,$guide_xmin,$guide_xmax,$guide_ymin,$guide_ymax,$guide_labels,$guide_grid,$guide_w,$guide_h)
+$guide_twoexp = replacealttext($guide_twoexp,"Two exponential-looking branches. It is not a function because many x-values have two y-values.")
+
+
+
+
+// 0 = linear function
+// 1 = vertical line, not a function
+// 2 = quadratic function
+// 3 = sideways parabola, not a function
+// 4 = exponential function
+// 5 = two-branch exponential relation, not a function
+$graphtype = rand(0,5)
+
+
+// Part A choices
+$questions[0] = array("Yes", "No")
+
+
+// Graph settings
+$xmin = -10
+$xmax = 10
+$ymin = -10
+$ymax = 10
+$labels = "2:2:x:y"
+$grid = 1
+$gw = 330
+$gh = 330
+
+
+if ($graphtype==0) {
+  // Linear function: passes vertical line test
+  $m = randfrom(array(-2,-1,1,2))
+  $b = rand(-2,2)
+
+
+  if (abs($m)==2) {
+    $xlo = -4
+    $xhi = 4
+  } else {
+    $xlo = -7
+    $xhi = 7
+  }
+
+
+  $func = "$m*x+($b),black,$xlo,$xhi,arrow,arrow,2"
+  $graph = showplot($func,$xmin,$xmax,$ymin,$ymax,$labels,$grid,$gw,$gh)
+
+
+  $answer[0] = 0
+
+
+  $bchoices = array(
+    "Each x-value has one y-value.",
+    "Some x-values have two y-values.",
+    "Curved graphs are not functions.",
+    "Crossing an axis makes it fail."
+  )
+  $btags = array("correct","wrong","wrong","wrong")
+
+
+  $alt = "A non-vertical straight line on the coordinate plane."
+  $showanswer = "Yes, the graph represents a function. It passes the vertical line test because each x-value has exactly one y-value."
+}
+
+
+if ($graphtype==1) {
+  // Vertical line: not a function
+  $c = nonzerorand(-7,7)
+
+
+  // Parametric vertical segment with arrows
+  $func = "[$c,t],black,-8,8,arrow,arrow,2"
+  $graph = showplot($func,$xmin,$xmax,$ymin,$ymax,$labels,$grid,$gw,$gh)
+
+
+  $answer[0] = 1
+
+
+  $bchoices = array(
+    "Some x-values have two y-values.",
+    "Each x-value has one y-value.",
+    "All straight lines are functions.",
+    "Crossing an axis makes it fail."
+  )
+  $btags = array("correct","wrong","wrong","wrong")
+
+
+  $alt = "A vertical line segment on the coordinate plane."
+  $showanswer = "No, the graph does not represent a function. A vertical line gives the same x-value many different y-values, so it fails the vertical line test."
+}
+
+
+if ($graphtype==2) {
+  // Quadratic function: passes vertical line test
+  $a = randfrom(array(-1,1))
+  $h = rand(-3,3)
+
+
+  if ($a==1) {
+    $k = rand(-5,-1)
+  } else {
+    $k = rand(1,5)
+  }
+
+
+  $qmin = $h - 3
+  $qmax = $h + 3
+
+
+  $func = "($a)*(x-($h))^2+($k),black,$qmin,$qmax,arrow,arrow,2"
+  $graph = showplot($func,$xmin,$xmax,$ymin,$ymax,$labels,$grid,$gw,$gh)
+
+
+  $answer[0] = 0
+
+
+  $bchoices = array(
+    "Each x-value has one y-value.",
+    "Some x-values have two y-values.",
+    "Having a vertex makes it fail.",
+    "Curved graphs are not functions."
+  )
+  $btags = array("correct","wrong","wrong","wrong")
+
+
+  $alt = "A vertical parabola on the coordinate plane."
+  $showanswer = "Yes, the graph represents a function. A vertical parabola passes the vertical line test because each x-value has exactly one y-value."
+}
+
+
+if ($graphtype==3) {
+  // Sideways parabola: not a function
+  $a = randfrom(array(-1,1))
+
+
+  if ($a==1) {
+    $h = rand(-6,-2)
+  } else {
+    $h = rand(2,6)
+  }
+
+
+  $k = rand(-2,2)
+  $tmin = $k - 3
+  $tmax = $k + 3
+
+
+  // x = a(y-k)^2+h, written parametrically as [x(t),y(t)]
+  $func = "[($a)*(t-($k))^2+($h),t],black,$tmin,$tmax,arrow,arrow,2"
+  $graph = showplot($func,$xmin,$xmax,$ymin,$ymax,$labels,$grid,$gw,$gh)
+
+
+  $answer[0] = 1
+
+
+  $bchoices = array(
+    "Some x-values have two y-values.",
+    "Each x-value has one y-value.",
+    "Having a vertex makes it fail.",
+    "All parabolas are functions."
+  )
+  $btags = array("correct","wrong","wrong","wrong")
+
+
+  $alt = "A sideways parabola on the coordinate plane."
+  $showanswer = "No, the graph does not represent a function. Some vertical lines would hit the graph twice, meaning some x-values have two different y-values."
+}
+
+
+if ($graphtype==4) {
+  // Exponential function: passes vertical line test
+  $a = randfrom(array(-2,-1,1,2))
+  $h = rand(-2,2)
+  $k = rand(-1,1)
+  $dir = rand(0,1)
+
+
+  if ($dir==0) {
+    // exponential growth shape
+    $emin = $h - 4
+    $emax = $h + 2
+    $func = "($a)*(2^(x-($h)))+($k),black,$emin,$emax,arrow,arrow,2"
+  } else {
+    // exponential decay shape
+    $emin = $h - 2
+    $emax = $h + 4
+    $func = "($a)*(2^(-(x-($h))))+($k),black,$emin,$emax,arrow,arrow,2"
+  }
+
+
+  $graph = showplot($func,$xmin,$xmax,$ymin,$ymax,$labels,$grid,$gw,$gh)
+
+
+  $answer[0] = 0
+
+
+  $bchoices = array(
+    "Each x-value has one y-value.",
+    "Some x-values have two y-values.",
+    "Exponential graphs always fail.",
+    "Curved graphs are not functions."
+  )
+  $btags = array("correct","wrong","wrong","wrong")
+
+
+  $alt = "An exponential curve on the coordinate plane."
+  $showanswer = "Yes, the graph represents a function. Even though it curves, each x-value has exactly one y-value, so it passes the vertical line test."
+}
+
+
+if ($graphtype==5) {
+  // Two-branch exponential relation: not a function
+  // This replaces the earlier sideways exponential because that graph still passed the vertical line test.
+  $a = randfrom(array(1,2))
+  $h = rand(-2,2)
+  $k = rand(-1,1)
+  $dir = rand(0,1)
+
+
+  if ($dir==0) {
+    $emin = $h - 4
+    $emax = $h + 2
+
+
+    $funcs = array(
+      "($a)*(2^(x-($h)))+($k),black,$emin,$emax,arrow,arrow,2",
+      "-($a)*(2^(x-($h)))+($k),black,$emin,$emax,arrow,arrow,2"
+    )
+  } else {
+    $emin = $h - 2
+    $emax = $h + 4
+
+
+    $funcs = array(
+      "($a)*(2^(-(x-($h))))+($k),black,$emin,$emax,arrow,arrow,2",
+      "-($a)*(2^(-(x-($h))))+($k),black,$emin,$emax,arrow,arrow,2"
+    )
+  }
+
+
+  $graph = showplot($funcs,$xmin,$xmax,$ymin,$ymax,$labels,$grid,$gw,$gh)
+
+
+  $answer[0] = 1
+
+
+  $bchoices = array(
+    "Some x-values have two y-values.",
+    "Each x-value has one y-value.",
+    "All exponential graphs are functions.",
+    "Crossing an axis makes it fail."
+  )
+  $btags = array("correct","wrong","wrong","wrong")
+
+
+  $alt = "Two exponential-looking branches on the coordinate plane, one above and one below."
+  $showanswer = "No, the graph does not represent a function. Many vertical lines would hit both branches, so some x-values have two different y-values."
+}
+
+
+// Accessibility
+$graph = replacealttext($graph,$alt)
+
+
+// Shuffle Part B choices while keeping the correct tag paired with the correct choice.
+$bchoices,$btags = jointshuffle($bchoices,$btags)
+
+
+$questions[1] = $bchoices
+$answer[1] = arrayfindindex("correct",$btags)
+
+
+
+
+Question Text:
+
+<style>
+  .anstext,
+  .answer,
+  .mcanswer,
+  .mcradio,
+  .radiolabel,
+  label {
+    font-size:14pt !important;
+    line-height:1.18 !important;
+  }
+
+
+  input[type="radio"] {
+    transform:scale(1.15);
+    margin-right:8px;
+  }
+</style>
+
+
+<div style="font-family:Arial, sans-serif; font-size:14pt; line-height:1.18; max-width:900px;">
+  <div style="font-weight:bold; margin-bottom:8px;">
+    Determine whether the relation shown by the graph represents a function. If it is not a function, state why not.
+  </div>
+
+
+  <div style="margin:8px 0 12px 0;">
+    $graph
+  </div>
+
+
+  <div style="margin-top:8px;">
+    <strong>Part A.</strong> Does the graph represent a function?
+  </div>
+  <div style="margin:4px 0 0 18px;">
+    $answerbox[0]
+  </div>
+
+
+  ///
+
+
+  <div style="margin-top:12px;">
+    <strong>Part B.</strong> Which statement best explains your answer?
+  </div>
+  <div style="margin:4px 0 0 18px;">
+    $answerbox[1]
+  </div>
+</div>
+
+
+Written example:
+<div style="font-family: Arial, sans-serif; font-size: 14pt; line-height: 1.15; max-width: 1100px; margin: 0 auto; color: #222;">
+  <div style="font-size: 17pt; font-weight: bold; margin: 0 0 6px 0;">Student Guide: Function or Not a Function?</div>
+  <div style="border: 1px solid #9bb7d4; background: #f5f9fd; padding: 8px 10px; margin: 0 0 8px 0;"><strong>Big idea:</strong> A relation is a <span style="color: #2e7d32; font-weight: bold;">function</span> when every <span style="color: #1565c0; font-weight: bold;">x-value</span> has exactly one <span style="color: #9c5a00; font-weight: bold;">y-value</span>. On a graph, use the <strong>vertical line test</strong>.</div>
+  <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+    <tbody>
+      <tr>
+        <td style="width: 63%; vertical-align: top; padding: 0 8px 0 0;">
+          <div style="border: 1px solid #999; padding: 8px; margin: 0 0 8px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Step-by-Step Method</div>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tbody>
+                <tr>
+                  <td style="width: 32px; vertical-align: top; font-weight: bold; color: #1565c0;">1.</td>
+                  <td style="padding-bottom: 4px;">Pick a <span style="color: #1565c0; font-weight: bold;">vertical line</span> location, which means one x-value.</td>
+                </tr>
+                <tr>
+                  <td style="vertical-align: top; font-weight: bold; color: #1565c0;">2.</td>
+                  <td style="padding-bottom: 4px;">Imagine that vertical line moving across the graph from left to right.</td>
+                </tr>
+                <tr>
+                  <td style="vertical-align: top; font-weight: bold; color: #1565c0;">3.</td>
+                  <td>If the vertical line ever hits the graph more than once, the graph is <span style="color: #9c5a00; font-weight: bold;">not a function</span>. If it only hits once each time, it is a <span style="color: #2e7d32; font-weight: bold;">function</span>.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Examples of Each Graph Type</div>
+          <table style="width: 100%; border-collapse: separate; border-spacing: 6px;">
+            <tbody>
+              <tr>
+                <td style="width: 50%; vertical-align: top; border: 1px solid #bbb; padding: 6px;">
+                  <div style="font-weight: bold;">1. Non-vertical line</div>
+                  <div style="text-align: center; margin: 3px 0;">$guide_lin</div>
+                  <div><span style="color: #2e7d32; font-weight: bold;">Yes, function.</span> Each x-value has one y-value.</div>
+                </td>
+                <td style="width: 50%; vertical-align: top; border: 1px solid #bbb; padding: 6px;">
+                  <div style="font-weight: bold;">2. Vertical line</div>
+                  <div style="text-align: center; margin: 3px 0;">$guide_vert</div>
+                  <div><span style="color: #9c5a00; font-weight: bold;">No, not a function.</span> One x-value has many y-values.</div>
+                </td>
+              </tr>
+              <tr>
+                <td style="vertical-align: top; border: 1px solid #bbb; padding: 6px;">
+                  <div style="font-weight: bold;">3. Vertical parabola</div>
+                  <div style="text-align: center; margin: 3px 0;">$guide_quad</div>
+                  <div><span style="color: #2e7d32; font-weight: bold;">Yes, function.</span> A curve can still pass the test.</div>
+                </td>
+                <td style="vertical-align: top; border: 1px solid #bbb; padding: 6px;">
+                  <div style="font-weight: bold;">4. Sideways parabola</div>
+                  <div style="text-align: center; margin: 3px 0;">$guide_side</div>
+                  <div><span style="color: #9c5a00; font-weight: bold;">No, not a function.</span> Some vertical lines hit twice.</div>
+                </td>
+              </tr>
+              <tr>
+                <td style="vertical-align: top; border: 1px solid #bbb; padding: 6px;">
+                  <div style="font-weight: bold;">5. Exponential curve</div>
+                  <div style="text-align: center; margin: 3px 0;">$guide_exp</div>
+                  <div><span style="color: #2e7d32; font-weight: bold;">Yes, function.</span> Each x-value has one y-value.</div>
+                </td>
+                <td style="vertical-align: top; border: 1px solid #bbb; padding: 6px;">
+                  <div style="font-weight: bold;">6. Two exponential branches</div>
+                  <div style="text-align: center; margin: 3px 0;">$guide_twoexp</div>
+                  <div><span style="color: #9c5a00; font-weight: bold;">No, not a function.</span> Many x-values have two y-values.</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+        <td style="width: 37%; vertical-align: top; padding: 0 0 0 8px;">
+          <div style="border: 1px solid #999; padding: 8px; margin: 0 0 8px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">What to Look For</div>
+            <div style="margin: 2px 0;"><span style="color: #1565c0; font-weight: bold;">Same x</span> with exactly one <span style="color: #9c5a00; font-weight: bold;">y</span> &rarr; function.</div>
+            <div style="margin: 2px 0;"><span style="color: #1565c0; font-weight: bold;">Same x</span> with two or more <span style="color: #9c5a00; font-weight: bold;">y-values</span> &rarr; not a function.</div>
+            <div style="margin: 2px 0;">Straight does not always mean function: a vertical line fails.</div>
+            <div style="margin: 2px 0;">Curved does not automatically mean not a function.</div>
+          </div>
+          <div style="border: 1px solid #9bb7d4; background: #f5f9fd; padding: 8px; margin: 0 0 8px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Shortcut</div>
+            <div style="margin: 2px 0;">Use a pencil edge or your finger as a vertical line.</div>
+            <div style="margin: 2px 0;">Slide it across the graph.</div>
+            <div style="margin: 2px 0;">If it ever touches the graph twice at the same time, answer <span style="color: #9c5a00; font-weight: bold;">No</span>.</div>
+          </div>
+          <div style="border: 1px solid #bbb; padding: 8px; margin: 0 0 8px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Shortcut Example</div>
+            <div style="margin: 2px 0;">A vertical line through a sideways parabola may hit the top branch and bottom branch.</div>
+            <div style="margin: 2px 0;">That means one <span style="color: #1565c0; font-weight: bold;">x-value</span> has two <span style="color: #9c5a00; font-weight: bold;">y-values</span>.</div>
+            <div style="margin: 2px 0;"><strong>Answer:</strong> <span style="color: #9c5a00; font-weight: bold;">Not a function.</span></div>
+          </div>
+          <div style="border: 1px solid #999; padding: 8px; margin: 0 0 8px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Common Mistakes</div>
+            <div style="margin: 3px 0;"><strong>Mistake:</strong> &ldquo;Curved graphs are not functions.&rdquo; <br><strong>Fix:</strong> Vertical parabolas and exponential curves can be functions.</div>
+            <div style="margin: 3px 0;"><strong>Mistake:</strong> &ldquo;All straight lines are functions.&rdquo; <br><strong>Fix:</strong> Vertical lines are not functions.</div>
+            <div style="margin: 3px 0;"><strong>Mistake:</strong> &ldquo;Crossing an axis makes it fail.&rdquo; <br><strong>Fix:</strong> Axis crossings do not decide function or not.</div>
+            <div style="margin: 3px 0;"><strong>Mistake:</strong> &ldquo;Having a vertex makes it fail.&rdquo; <br><strong>Fix:</strong> The direction of the graph matters, not just the vertex.</div>
+          </div>
+          <div style="border: 2px solid #2e7d32; padding: 8px; margin: 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Final Check</div>
+            <div style="margin: 2px 0;">Part A: Choose <strong>Yes</strong> if every x has one y.</div>
+            <div style="margin: 2px 0;">Part A: Choose <strong>No</strong> if any x has more than one y.</div>
+            <div style="margin: 2px 0;">Part B should match your reason:</div>
+            <div style="margin: 2px 0 0 12px;">Yes &rarr; &ldquo;Each x-value has one y-value.&rdquo;</div>
+            <div style="margin: 2px 0 0 12px;">No &rarr; &ldquo;Some x-values have two y-values.&rdquo;</div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
