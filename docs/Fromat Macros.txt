@@ -1,0 +1,39 @@
+﻿MyOpenMath Help
+Format Macros
+The following macros help with formatting values for display:
+* makepretty(string or array of strings): Changes double add/subtract signs to a single sign.
+* makeprettydisp(string or array of strings): Does makepretty (see above) and backquotes the string for math display
+* polymakepretty and polymakeprettydisp: Like makepretty, but for polynomials. Cleans up 0*, 1*, ^1, and ^0 to make the polynomial look nicer. This function can do weird things for equations that are not simple polynomials, so test well
+* makexpretty and makexprettydisp: (deprecated - use makexxpretty instead) Like makepretty, but the X-tra version - attempts to clean up things like 1*, 0*, etc. This function will often cause weird things to happen, so test well
+* makexxpretty and makexxprettydisp: Like makepretty, but the X-tra version - attempts to clean up things like 1*, 0*, x^1, x^0, etc. Can occasionally cause strange output, so be sure to test. Handles things better than the older makexpretty, but does not always produce 100% identical output. This function cannot handle |x| notation; use abs(x) instead.
+* makepretynegative(string): Puts parens around negatives is certain cases. Changes 3--4 to 3-(-4) and 3+-4 to 3+(-4), but note it will change 3-+4 to 3-4.
+* numtowords(number,[addth, numwithTh, addcommas): Creates a string containing number written out in words.
+numtowords(1203) returns "one thousand two hundred three"
+numtowords(1203,true) returns "one thousand two hundred third"
+numtowords(1203,false,true) returns "1023rd"
+numtowords(1203,false,false,true) returns "one thousand, two hundred three"
+* fractowords(numerator,denominator,[options]): Creates a string containing fraction numerator/denominator written out in words. By default, fractions will be reduced to integers if possible, and pos/neg signs will be reduced. Options is a string that can include combinations of 'mixed' or 'literal', and 'over' or 'by', and 'hyphen'. Using 'over' or 'by' will connect numerator and denominator with that word. Using 'mixed' will output a mixed number, and 'literal' overrides the default simplifications. Does not allow division by zero. If 'over' and 'by' both used, defaults to 'over'. If 'mixed' and 'literal' both used, defaults to 'mixed'. 'hyphen' will hyphenate the fraction.
+fractowords(5,-2) returns "negative five halves"
+fractowords(6,3) returns "two"
+fractowrods(2,3,'hyphen') return 'two-thirds'
+fractowords(-7,4,'mixed') returns "negative one and three fourths"
+fractowords(-7,4,'mixed over') returns "negative one and three over four"
+fractowords(6,3,'literal') returns "six thirds"
+fractowords(6,3,'literal over') returns "six over three"
+* numtoroman(number,[uppercase]): Converts a number 0.5-3999.5 to a roman numeral string. Defaults to uppercase; set second parameter to false to produce lowercase
+* prettyint(number): Adds commas in thousands spaces of integers. Example: prettyint(1234) will return "1,234". The result is a string, which can only be used for display, not in calculations
+* prettyreal(number,decimals,[comma]): Adds commas in thousands spaces of number, and displays the value to a fixed number of decimals places (rounding if needed). Example: prettyreal(1234.567,2) will return "1,234.57", and prettyreal(1.8,3) will return "1.800". The result is a string, which can only be used for display, not in calculations. By default adds a comma as a thousands separator; set comma to "" to override.
+* prettyreal_instring(string,decimals,[comma]): Formats any number in the string using the same process as prettyreal.
+* round_instring(string,[decimals]): Rounds any number in the string to the specified number of decimal places (nearest whole number if decimal is left out)
+* prettysmallnumber(number, [space]): Prevents very small numbers from being displayed as scientific notation. Set space to true to add space in groups of 3, like 0.000 000 02
+* prettysigfig(number,sigfigs,[comma,choptrailingzeros,scinot,sigfigbar]): Rounds number to sigfigs significant figures. By default it adds commas in thousands spaces; set comma to "" to override. Set choptrailingzeros to true to chop trailing zeros from the decimal part, even if significant. Set scinot to true to display in scientific notation. Set sigfigbar to true to put line over last significant, non-terminating zero, such as 4200 having three sig figs (use only in math display). This is for display; to round a number for calculations, use roundsigfig.
+* prettysigfig_instring(string,sigfigs,[comma,choptrailingzeros,scinot,sigfigbar]): Rounds any number in the string to sigfigs significant figures. The rest of the options are the same as for prettysigfig.
+* makescinot(number,[decimals,format]): Converts number to scientific notation. If provided, rounds mantissa to decimals places. Can specify format: "*" "E" as alternative to default cross.
+* prettytime(value,informat,outformat): Creates a nice representation of a time. Informat can be 'h', 'm', or 's' designating whether value is hours, minutes, or seconds. Outformat can be any combination of these to specify output. For example, 'hm' will return "__ hours and __ minutes". Outformat can also be 'clock' which returns 3:42pm, or 'sclock' which returns 3:42:15pm
+* dispreducedfraction(numerator,denominator,[doubleslash,variable in numerator]): Takes two numbers as numerator and denominator of a fraction, returning a display form of the fraction, reduced to lowest terms. Suitable for $showanswer. Set doubleslash to true to produced "3//4" rather than "3/4". Set variable in numerator to put a variable in the numerator, such as pi.
+* makereducedfraction(numerator,denominator,[doubleslash,variable in numerator]): Same as dispreducefraction, but not already in display form.
+An alternate input form of makereducedfraction(numerator,denominator,'parts') will return an array of the reduced numerator and denominator.
+* decimaltofraction(decimal,[format,maxden]): Converts a decimal to a fraction. Can use format="mixednumber" to get a mixed number rather than improper fraction. Only works for denominators up to maxden (default 5000)
+* htmldisp(string,[variables]): Uses HTML instead of the math typesetter to display simple exponents and subscripts, and to italicize variables
+* formatcomplex(real,imag): Creates a string like "2+i" from the real and imaginary parts.
+* rawurlencode(string): Encodes a string for use in a URL query string parameter.
