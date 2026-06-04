@@ -1,0 +1,548 @@
+Common Control:
+
+$anstypes = array("choices","choices","choices","choices","choices","choices","choices","choices")
+$answeights = array(.125,.125,.125,.125,.125,.125,.125,.125)
+
+$hidetips = true
+$showanswerstyle = "inline"
+
+$letters = array("A","B","C","D")
+
+// Axis choices:
+// 0 = No vertical or horizontal axis
+// 1 = Horizontal axis
+// 2 = Vertical axis
+
+// Quadrant choices:
+// 0 = 1 quadrant
+// 1 = 2 quadrants
+// 2 = 3 quadrants
+// 3 = 4 quadrants
+
+// Short dropdown labels keep the table from stretching.
+$axisChoices = array("None","Horizontal","Vertical")
+$quadChoices = array("?","1","2","3","4")
+
+// The first quadrant choice is a visual placeholder.
+// Correct answers use 1 = "1", 2 = "2", 3 = "3", 4 = "4" in the dropdown list.
+
+// --------------------------------------------------
+// CATEGORY 0: Diagonal line through the origin
+// --------------------------------------------------
+$diagOriginDir = rand(0,1)
+$diagOriginSlopeAbs = randfrom(array(1,2,3,4,5,6))
+$diagOriginTemplate = rand(0,7)
+
+if ($diagOriginDir==0) {
+  $diagOriginSlope = $diagOriginSlopeAbs
+  $diagOriginDirText = "increases from left to right"
+  $diagOriginQuadText = "Quadrants I and III"
+  $diagOriginShort = "diagonal line through the origin that increases"
+} else {
+  $diagOriginSlope = -1*$diagOriginSlopeAbs
+  $diagOriginDirText = "decreases from left to right"
+  $diagOriginQuadText = "Quadrants II and IV"
+  $diagOriginShort = "diagonal line through the origin that decreases"
+}
+
+$rawStmt[0] = "A diagonal line passes through the origin and $diagOriginDirText." if ($diagOriginTemplate==0)
+$rawStmt[0] = "A slanted line goes through the point (0, 0) and $diagOriginDirText." if ($diagOriginTemplate==1)
+$rawStmt[0] = "A diagonal line crosses the origin and $diagOriginDirText." if ($diagOriginTemplate==2)
+$rawStmt[0] = "A straight diagonal graph crosses both axes at the origin." if ($diagOriginTemplate==3)
+$rawStmt[0] = "The graph is a non-horizontal line through (0, 0) that $diagOriginDirText." if ($diagOriginTemplate==4)
+$rawStmt[0] = "A diagonal line includes the origin and $diagOriginDirText." if ($diagOriginTemplate==5)
+$rawStmt[0] = "A diagonal graph crosses both axes at the origin and $diagOriginDirText." if ($diagOriginTemplate==6)
+$rawStmt[0] = "A straight diagonal line passes through (0, 0) and $diagOriginDirText." if ($diagOriginTemplate==7)
+
+$rawAxisAns[0] = 0
+$rawQuadAns[0] = 2
+$rawAxisText[0] = "No vertical or horizontal axis"
+$rawQuadText[0] = "2 quadrants"
+$rawReason[0] = "This is a $diagOriginShort. It passes through $diagOriginQuadText, so it passes through 2 quadrants. It does not have a vertical or horizontal axis of symmetry."
+
+$rawGraph[0] = showplot("{$diagOriginSlope}*x,black,-8,8,arrow,arrow,2",-10,10,-10,10,"2:2:x:y","1:1",220,220)
+$rawGraph[0] = addplotborder($rawGraph[0],18)
+$rawGraph[0] = replacealttext($rawGraph[0],"Sample graph for a diagonal line through the origin.")
+
+// --------------------------------------------------
+// CATEGORY 1: Diagonal line that does not pass through the origin
+// --------------------------------------------------
+$diagNoOriginSlopeSign = randfrom(array(-1,1))
+$diagNoOriginSlopeAbs = randfrom(array(1,2,3,4,5,6))
+$diagNoOriginSlope = $diagNoOriginSlopeSign*$diagNoOriginSlopeAbs
+
+$diagNoOriginBSign = randfrom(array(-1,1))
+$diagNoOriginBAbs = randfrom(array(2,3,4,5,6,7,8))
+$diagNoOriginB = $diagNoOriginBSign*$diagNoOriginBAbs
+
+$diagNoOriginTemplate = rand(0,7)
+
+$diagNoOriginDirText = "increases from left to right" if ($diagNoOriginSlope>0)
+$diagNoOriginDirText = "decreases from left to right" if ($diagNoOriginSlope<0)
+
+$diagNoOriginBText = "above the origin" if ($diagNoOriginB>0)
+$diagNoOriginBText = "below the origin" if ($diagNoOriginB<0)
+
+$rawStmt[1] = "A diagonal line does not pass through the origin." if ($diagNoOriginTemplate==0)
+$rawStmt[1] = "A slanted line crosses the y-axis $diagNoOriginBText." if ($diagNoOriginTemplate==1)
+$rawStmt[1] = "A diagonal line $diagNoOriginDirText and misses the origin." if ($diagNoOriginTemplate==2)
+$rawStmt[1] = "A diagonal line $diagNoOriginDirText, but it does not cross the origin." if ($diagNoOriginTemplate==3)
+$rawStmt[1] = "A straight diagonal line crosses the y-axis $diagNoOriginBText." if ($diagNoOriginTemplate==4)
+$rawStmt[1] = "A line is not horizontal or vertical, and it misses the origin." if ($diagNoOriginTemplate==5)
+$rawStmt[1] = "A slanted graph crosses the y-axis somewhere other than the origin." if ($diagNoOriginTemplate==6)
+$rawStmt[1] = "A diagonal line does not include the point (0, 0)." if ($diagNoOriginTemplate==7)
+
+$rawAxisAns[1] = 0
+$rawQuadAns[1] = 3
+$rawAxisText[1] = "No vertical or horizontal axis"
+$rawQuadText[1] = "3 quadrants"
+$rawReason[1] = "This is a diagonal line that does not pass through the origin. A non-horizontal, non-vertical line that misses the origin passes through 3 quadrants. It does not have a vertical or horizontal axis of symmetry."
+
+$rawGraph[1] = showplot("{$diagNoOriginSlope}*x+($diagNoOriginB),black,-8,8,arrow,arrow,2",-10,10,-10,10,"2:2:x:y","1:1",220,220)
+$rawGraph[1] = addplotborder($rawGraph[1],18)
+$rawGraph[1] = replacealttext($rawGraph[1],"Sample graph for a diagonal line that does not pass through the origin.")
+
+// --------------------------------------------------
+// CATEGORY 2: Horizontal line
+// --------------------------------------------------
+$horizYSign = randfrom(array(-1,1))
+$horizYAbs = randfrom(array(2,3,4,5,6,7,8,9))
+$horizY = $horizYSign*$horizYAbs
+$horizTemplate = rand(0,7)
+
+$horizLocText = "above the origin" if ($horizY>0)
+$horizLocText = "below the origin" if ($horizY<0)
+
+$horizAxisText = "above the x-axis" if ($horizY>0)
+$horizAxisText = "below the x-axis" if ($horizY<0)
+
+$horizQuadText = "Quadrants I and II" if ($horizY>0)
+$horizQuadText = "Quadrants III and IV" if ($horizY<0)
+
+$rawStmt[2] = "A horizontal line is $horizLocText." if ($horizTemplate==0)
+$rawStmt[2] = "A flat line is $horizLocText." if ($horizTemplate==1)
+$rawStmt[2] = "A flat line crosses the y-axis $horizLocText." if ($horizTemplate==2)
+$rawStmt[2] = "A left-to-right flat line is $horizLocText." if ($horizTemplate==3)
+$rawStmt[2] = "Every point on the line stays at the same height." if ($horizTemplate==4)
+$rawStmt[2] = "A horizontal graph stays $horizYAbs units $horizAxisText." if ($horizTemplate==5)
+$rawStmt[2] = "The graph is a flat line that is $horizLocText." if ($horizTemplate==6)
+$rawStmt[2] = "A horizontal line does not pass through the origin." if ($horizTemplate==7)
+
+$rawAxisAns[2] = 1
+$rawQuadAns[2] = 2
+$rawAxisText[2] = "Horizontal axis"
+$rawQuadText[2] = "2 quadrants"
+$rawReason[2] = "This is a horizontal line $horizLocText. For this problem, the line itself is treated as a horizontal axis of symmetry. It passes through $horizQuadText, so it passes through 2 quadrants."
+
+$rawGraph[2] = showplot("{$horizY},black,-9,9,arrow,arrow,2",-10,10,-10,10,"2:2:x:y","1:1",220,220)
+$rawGraph[2] = addplotborder($rawGraph[2],18)
+$rawGraph[2] = replacealttext($rawGraph[2],"Sample graph for a horizontal line.")
+
+// --------------------------------------------------
+// CATEGORY 3: Vertical line
+// --------------------------------------------------
+$vertXSign = randfrom(array(-1,1))
+$vertXAbs = randfrom(array(2,3,4,5,6,7,8,9))
+$vertX = $vertXSign*$vertXAbs
+$vertTemplate = rand(0,7)
+
+$vertLocText = "to the right of the origin" if ($vertX>0)
+$vertLocText = "to the left of the origin" if ($vertX<0)
+
+$vertAxisText = "to the right of the y-axis" if ($vertX>0)
+$vertAxisText = "to the left of the y-axis" if ($vertX<0)
+
+$vertQuadText = "Quadrants I and IV" if ($vertX>0)
+$vertQuadText = "Quadrants II and III" if ($vertX<0)
+
+$rawStmt[3] = "A vertical line is $vertLocText." if ($vertTemplate==0)
+$rawStmt[3] = "An up-and-down line is $vertLocText." if ($vertTemplate==1)
+$rawStmt[3] = "A straight up-and-down line crosses the x-axis away from the origin." if ($vertTemplate==2)
+$rawStmt[3] = "Every point on the line stays the same distance left or right." if ($vertTemplate==3)
+$rawStmt[3] = "A vertical graph is $vertXAbs units $vertAxisText." if ($vertTemplate==4)
+$rawStmt[3] = "The line is vertical and does not pass through the origin." if ($vertTemplate==5)
+$rawStmt[3] = "A vertical line sits $vertLocText." if ($vertTemplate==6)
+$rawStmt[3] = "The graph is an up-and-down line away from the origin." if ($vertTemplate==7)
+
+$rawAxisAns[3] = 2
+$rawQuadAns[3] = 2
+$rawAxisText[3] = "Vertical axis"
+$rawQuadText[3] = "2 quadrants"
+$rawReason[3] = "This is a vertical line $vertLocText. For this problem, the line itself is treated as a vertical axis of symmetry. It passes through $vertQuadText, so it passes through 2 quadrants."
+
+$rawGraph[3] = showplot("x={$vertX},black,,,arrow,arrow,2",-10,10,-10,10,"2:2:x:y","1:1",220,220)
+$rawGraph[3] = addplotborder($rawGraph[3],18)
+$rawGraph[3] = replacealttext($rawGraph[3],"Sample graph for a vertical line.")
+
+// --------------------------------------------------
+// Randomize statement order
+// --------------------------------------------------
+$pos = singleshuffle(array(0,1,2,3))
+
+for ($i=0..3) {
+  $stmt[$i] = $rawStmt[$pos[$i]]
+  $axisAns[$i] = $rawAxisAns[$pos[$i]]
+  $quadAns[$i] = $rawQuadAns[$pos[$i]]
+  $axisText[$i] = $rawAxisText[$pos[$i]]
+  $quadText[$i] = $rawQuadText[$pos[$i]]
+  $reason[$i] = $rawReason[$pos[$i]]
+  $sampleGraph[$i] = $rawGraph[$pos[$i]]
+}
+
+// Simple variables for Question Text.
+$stmtA = $stmt[0]
+$stmtB = $stmt[1]
+$stmtC = $stmt[2]
+$stmtD = $stmt[3]
+
+// --------------------------------------------------
+// Answers
+// --------------------------------------------------
+for ($i=0..3) {
+  $base = 2*$i
+
+  $questions[$base] = $axisChoices
+  $questions[$base+1] = $quadChoices
+
+  $answer[$base] = $axisAns[$i]
+  $answer[$base+1] = $quadAns[$i]
+
+  $displayformat[$base] = "select"
+  $displayformat[$base+1] = "select"
+
+  $noshuffle[$base] = "all"
+  $noshuffle[$base+1] = "all"
+
+  $L = $letters[$i]
+  $readerlabel[$base] = "Choose the axis of symmetry for statement $L."
+  $readerlabel[$base+1] = "Choose the number of quadrants for statement $L."
+}
+
+// --------------------------------------------------
+// Feedback
+// --------------------------------------------------
+$feedback = ""
+
+if (isset($scoreiscorrect)) {
+  for ($i=0..3) {
+    $base = 2*$i
+    $L = $letters[$i]
+
+    if (stuansready($stuanswers,$thisq,array($base,$base+1),$anstypes)) {
+      $rowCorrect = ($scoreiscorrect[$thisq][$base]==1 && $scoreiscorrect[$thisq][$base+1]==1)
+
+      if ($rowCorrect) {
+        $feedback = $feedback . "<div style='margin:4px 0; padding:6px; border:1px solid #b8d8b8; background:#f4fbf4; font-size:13pt; line-height:1.15;'><strong>Statement {$L} correct.</strong> You identified the axis of symmetry and number of quadrants correctly.</div>"
+      } else {
+        $feedback = $feedback . "<div style='margin:4px 0; padding:6px; border:1px solid #d8c7a0; background:#fffaf0; font-size:13pt; line-height:1.15;'><strong>Statement {$L} check:</strong> Decide whether the graph is diagonal, horizontal, or vertical. Then think about which quadrants the graph passes through.</div>"
+      }
+    }
+  }
+}
+
+// --------------------------------------------------
+// Show Answer
+// --------------------------------------------------
+$showanswer = "<div style='font-family:Arial, sans-serif; font-size:13pt; line-height:1.18; max-width:1050px;'>"
+
+$showanswer = $showanswer . "<div style='font-size:14pt; font-weight:bold; margin:0 0 5px 0;'>Correct Answer</div>"
+
+$showanswer = $showanswer . "<table style='width:100%; border-collapse:collapse; font-size:13pt; margin:0 0 8px 0;'>"
+$showanswer = $showanswer . "<tr>"
+$showanswer = $showanswer . "<th style='border:1px solid #c9c9c9; padding:5px; text-align:left;'>Statement</th>"
+$showanswer = $showanswer . "<th style='border:1px solid #c9c9c9; padding:5px; text-align:left;'>Axis</th>"
+$showanswer = $showanswer . "<th style='border:1px solid #c9c9c9; padding:5px; text-align:left;'>Quadrants</th>"
+$showanswer = $showanswer . "</tr>"
+
+for ($i=0..3) {
+  $L = $letters[$i]
+
+  $axisMiniText[$i] = $axisText[$i]
+  $axisMiniText[$i] = "None" if ($axisAns[$i]==0)
+  $axisMiniText[$i] = "Horizontal" if ($axisAns[$i]==1)
+  $axisMiniText[$i] = "Vertical" if ($axisAns[$i]==2)
+
+  $axisColor[$i] = "#555555"
+  $axisColor[$i] = "#a85a00" if ($axisAns[$i]==1)
+  $axisColor[$i] = "#1167b1" if ($axisAns[$i]==2)
+
+  $showanswer = $showanswer . "<tr>"
+  $showanswer = $showanswer . "<td style='border:1px solid #c9c9c9; padding:5px;'><strong>{$L}.</strong> {$stmt[$i]}</td>"
+  $showanswer = $showanswer . "<td style='border:1px solid #c9c9c9; padding:5px;'><strong style='color:{$axisColor[$i]};'>{$axisMiniText[$i]}</strong></td>"
+  $showanswer = $showanswer . "<td style='border:1px solid #c9c9c9; padding:5px;'><strong style='color:#1b7f3a;'>{$quadText[$i]}</strong></td>"
+  $showanswer = $showanswer . "</tr>"
+}
+
+$showanswer = $showanswer . "</table>"
+
+$showanswer = $showanswer . "<div style='font-size:14pt; font-weight:bold; margin:8px 0 5px 0;'>Rationale and Sample Graphs</div>"
+
+for ($i=0..3) {
+  $L = $letters[$i]
+
+  $axisMiniText[$i] = $axisText[$i]
+  $axisMiniText[$i] = "None" if ($axisAns[$i]==0)
+  $axisMiniText[$i] = "Horizontal" if ($axisAns[$i]==1)
+  $axisMiniText[$i] = "Vertical" if ($axisAns[$i]==2)
+
+  $axisColor[$i] = "#555555"
+  $axisColor[$i] = "#a85a00" if ($axisAns[$i]==1)
+  $axisColor[$i] = "#1167b1" if ($axisAns[$i]==2)
+
+  $showanswer = $showanswer . "<div style='border:1px solid #c9c9c9; padding:7px; background:#fafafa; margin:0 0 8px 0;'>"
+  $showanswer = $showanswer . "<div style='font-weight:bold; margin:0 0 5px 0;'>Statement {$L}</div>"
+
+  $showanswer = $showanswer . "<table style='width:100%; border-collapse:collapse;'>"
+  $showanswer = $showanswer . "<tr>"
+
+  $showanswer = $showanswer . "<td style='width:245px; vertical-align:top; padding:0 8px 0 0;'>"
+  $showanswer = $showanswer . "{$sampleGraph[$i]}"
+  $showanswer = $showanswer . "</td>"
+
+  $showanswer = $showanswer . "<td style='vertical-align:top; padding:0;'>"
+
+  $showanswer = $showanswer . "<div style='border:1px solid #b8d8b8; background:#f4fbf4; padding:6px; margin:0 0 6px 0;'>"
+  $showanswer = $showanswer . "<div style='font-weight:bold; margin:0 0 4px 0;'>Answer</div>"
+  $showanswer = $showanswer . "<div style='margin:0 0 3px 0;'><strong>Axis:</strong> <span style='color:{$axisColor[$i]}; font-weight:bold;'>{$axisMiniText[$i]}</span></div>"
+  $showanswer = $showanswer . "<div style='margin:0;'><strong>Quadrants:</strong> <span style='color:#1b7f3a; font-weight:bold;'>{$quadText[$i]}</span></div>"
+  $showanswer = $showanswer . "</div>"
+
+  $showanswer = $showanswer . "<div style='margin:0 0 4px 0;'><strong>Statement:</strong> {$stmt[$i]}</div>"
+  $showanswer = $showanswer . "<div style='margin:0;'><strong>Why:</strong> {$reason[$i]}</div>"
+
+  $showanswer = $showanswer . "</td>"
+  $showanswer = $showanswer . "</tr>"
+  $showanswer = $showanswer . "</table>"
+
+  $showanswer = $showanswer . "</div>"
+}
+
+$showanswer = $showanswer . "<div style='border:1px solid #d8c7a0; background:#fffaf0; padding:7px; margin:8px 0 0 0;'>"
+$showanswer = $showanswer . "<strong>Note:</strong> Points on an axis do not count as being inside a quadrant. Diagonal lines in this problem are marked as having no vertical or horizontal axis of symmetry."
+$showanswer = $showanswer . "</div>"
+
+$showanswer = $showanswer . "</div>"
+
+
+Question Text:
+
+<p><br><br></p>
+<div style="font-family: Arial, sans-serif; font-size: 14pt; line-height: 1.12; max-width: 1100px; margin: 0;">
+  <div style="margin: 0 0 6px 0;"><strong>Describe characteristics of each graph from the statement.</strong></div>
+  <br>
+  <div style="margin: 0 0 8px 0; color: #333;">For each statement, choose the axis of symmetry and the number of quadrants the graph passes through.</div>
+  <br>
+  <div style="margin: 0 0 8px 0; padding: 6px; border: 1px solid #d8c7a0; background: #fffaf0; font-size: 13pt; line-height: 1.15;"><strong>Note:</strong> For Axis of Symmetry, choose <strong>None</strong>, <strong>Horizontal</strong>, or <strong>Vertical</strong>. Points on an axis do not count as being inside a quadrant.</div>
+  <br>
+  <table class="statement-table" style="width: 100%; max-width: 100%; border-collapse: collapse; margin: 0 0 10px 0; table-layout: fixed;"><colgroup><col style="width: 5.99943%;"><col style="width: 52.9997%;"><col style="width: 25%;"><col style="width: 16.0009%;"></colgroup>
+    <tbody>
+      <tr>
+        <th style="border: 1px solid #9fb59f; padding: 5px; background: #d9ead3; text-align: center;">#</th>
+        <th style="border: 1px solid #9fb59f; padding: 5px; background: #d9ead3; text-align: center;">Statement</th>
+        <th style="border: 1px solid #9fb59f; padding: 5px; background: #d9ead3; text-align: center;">Axis</th>
+        <th style="border: 1px solid #9fb59f; padding: 5px; background: #d9ead3; text-align: center;">Quadrants</th>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #c9c9c9; padding: 5px; text-align: center;"><strong>A</strong></td>
+        <td style="border: 1px solid #c9c9c9; padding: 5px; line-height: 1.12;">$stmtA</td>
+        <td class="axis-cell" style="border: 1px solid rgb(201, 201, 201); padding: 3px; text-align: center;">$answerbox[0]</td>
+        <td class="quad-cell" style="border: 1px solid #c9c9c9; padding: 3px;">
+          <div class="quad-wrap" style="text-align: center;">$answerbox[1]</div>
+        </td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #c9c9c9; padding: 5px; text-align: center;"><strong>B</strong></td>
+        <td style="border: 1px solid #c9c9c9; padding: 5px; line-height: 1.12;">$stmtB</td>
+        <td class="axis-cell" style="border: 1px solid rgb(201, 201, 201); padding: 3px; text-align: center;">$answerbox[2]</td>
+        <td class="quad-cell" style="border: 1px solid #c9c9c9; padding: 3px;">
+          <div class="quad-wrap" style="text-align: center;">$answerbox[3]</div>
+        </td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #c9c9c9; padding: 5px; text-align: center;"><strong>C</strong></td>
+        <td style="border: 1px solid #c9c9c9; padding: 5px; line-height: 1.12;">$stmtC</td>
+        <td class="axis-cell" style="border: 1px solid rgb(201, 201, 201); padding: 3px; text-align: center;">$answerbox[4]</td>
+        <td class="quad-cell" style="border: 1px solid #c9c9c9; padding: 3px;">
+          <div class="quad-wrap" style="text-align: center;">$answerbox[5]</div>
+        </td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #c9c9c9; padding: 5px; text-align: center;"><strong>D</strong></td>
+        <td style="border: 1px solid #c9c9c9; padding: 5px; line-height: 1.12;">$stmtD</td>
+        <td class="axis-cell" style="border: 1px solid rgb(201, 201, 201); padding: 3px; text-align: center;">$answerbox[6]</td>
+        <td class="quad-cell" style="border: 1px solid #c9c9c9; padding: 3px;">
+          <div class="quad-wrap" style="text-align: center;">$answerbox[7]</div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <br>
+  <div style="margin: 0; padding: 0;">$feedback</div>
+</div>
+
+
+Written Example:
+
+<div style="font-family: Arial, sans-serif; font-size: 14pt; line-height: 1.16; max-width: 1100px; margin: 0 auto; color: #111;">
+  <div style="border: 1px solid #999; padding: 8px; margin: 0 0 8px 0; background: #f7f7f7;">
+    <div style="font-size: 16pt; font-weight: bold; margin: 0 0 4px 0;">Student Help Guide: Describing Graphs from Statements</div>
+    <div style="margin: 0;"><strong>Big idea:</strong> Use the words in the statement to picture the graph. Decide whether the line is <span style="color: #1167b1; font-weight: bold;">diagonal</span>, <span style="color: #a85a00; font-weight: bold;">horizontal</span>, or <span style="color: #a85a00; font-weight: bold;">vertical</span>. Then choose the axis of symmetry and count the quadrants it passes through.</div>
+  </div>
+  <br>
+  <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+    <tbody>
+      <tr>
+        <td style="width: 58%; vertical-align: top; padding: 0 6px 0 0;">
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Step-by-Step Method</div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14pt;">
+              <tbody>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; width: 30%; font-weight: bold;">Step 1</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Decide the line type: <strong>diagonal</strong>, <strong>horizontal</strong>, or <strong>vertical</strong>.</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; font-weight: bold;">Step 2</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Check whether the line passes through the <span style="color: #1167b1; font-weight: bold;">origin</span>, the point (0, 0).</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; font-weight: bold;">Step 3</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Choose the axis: diagonal lines use <strong>None</strong>, horizontal lines use <strong>Horizontal</strong>, and vertical lines use <strong>Vertical</strong>.</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; font-weight: bold;">Step 4</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Count only the quadrants where the graph has points inside the quadrant. Points on an axis do not count.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0;">
+            <div style="font-weight: bold; margin: 0 0 4px 0;">Example 1: Diagonal Line Through the Origin</div>
+            <div style="margin: 0 0 4px 0;">Statement: <span style="color: #1167b1; font-weight: bold;">A diagonal line passes through the origin and increases from left to right.</span></div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14pt;">
+              <tbody>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; width: 38%; font-weight: bold;">Axis</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">None</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; font-weight: bold;">Quadrants</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">2</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; font-weight: bold;">Why?</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">It goes through Quadrants I and III. The origin is on the axes, not inside a quadrant.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0;">
+            <div style="font-weight: bold; margin: 0 0 4px 0;">Example 2: Diagonal Line Not Through the Origin</div>
+            <div style="margin: 0 0 4px 0;">Statement: <span style="color: #1167b1; font-weight: bold;">A diagonal line does not pass through the origin.</span></div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14pt;">
+              <tbody>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; width: 38%; font-weight: bold;">Axis</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">None</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; font-weight: bold;">Quadrants</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">3</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px; font-weight: bold;">Why?</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">A diagonal line that misses the origin passes through 3 quadrants.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0;">
+            <div style="font-weight: bold; margin: 0 0 4px 0;">Example 3: Horizontal and Vertical Lines</div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14pt;">
+              <tbody>
+                <tr>
+                  <th style="border: 1px solid #ddd; padding: 5px; background: #f4f4f4; text-align: left;">Statement</th>
+                  <th style="border: 1px solid #ddd; padding: 5px; background: #f4f4f4; text-align: left;">Axis</th>
+                  <th style="border: 1px solid #ddd; padding: 5px; background: #f4f4f4; text-align: left;">Quadrants</th>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px;">A horizontal line is above the origin.</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Horizontal</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">2</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px;">A vertical line is to the left of the origin.</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Vertical</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">2</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+        <td style="width: 42%; vertical-align: top; padding: 0 0 0 6px;">
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0; background: #fffaf0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">What to Look For</div>
+            <div style="margin: 0 0 4px 0;">1. <strong>Diagonal</strong> means the line is slanted.</div>
+            <div style="margin: 0 0 4px 0;">2. <strong>Through the origin</strong> means the line passes through (0, 0).</div>
+            <div style="margin: 0 0 4px 0;">3. <strong>Horizontal</strong> means flat left to right.</div>
+            <div style="margin: 0 0 4px 0;">4. <strong>Vertical</strong> means straight up and down.</div>
+            <div style="margin: 0;">5. The words <strong>above</strong>, <strong>below</strong>, <strong>left</strong>, and <strong>right</strong> help you decide which quadrants are touched.</div>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0; background: #f4fbf4;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Shortcut</div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14pt;">
+              <tbody>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Diagonal through origin</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">None, 2</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Diagonal not through origin</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">None, 3</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Horizontal line</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Horizontal, 2</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Vertical line</td>
+                  <td style="border: 1px solid #ddd; padding: 5px;">Vertical, 2</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Shortcut Example</div>
+            <div style="margin: 0 0 4px 0;">Statement: <strong>A flat line is below the origin.</strong></div>
+            <div style="margin: 0 0 4px 0;">Flat line means <span style="color: #a85a00; font-weight: bold;">horizontal</span>.</div>
+            <div style="margin: 0 0 4px 0;">Below the origin means it passes through Quadrants III and IV.</div>
+            <div style="margin: 0;">Answer: <strong>Horizontal, 2</strong></div>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0 0 8px 0; background: #fff5f5;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Common Mistakes</div>
+            <div style="margin: 0 0 5px 0;"><strong>Mistake 1:</strong> Counting the origin as a quadrant. The origin is on the axes.</div>
+            <div style="margin: 0 0 5px 0;"><strong>Mistake 2:</strong> Thinking a diagonal line through the origin passes through 4 quadrants. It only passes through 2.</div>
+            <div style="margin: 0 0 5px 0;"><strong>Mistake 3:</strong> Confusing horizontal and vertical. Horizontal is flat; vertical is up and down.</div>
+            <div style="margin: 0 0 5px 0;"><strong>Mistake 4:</strong> Choosing an axis for a diagonal line. In this problem, diagonal lines use None.</div>
+            <div style="margin: 0;"><strong>Mistake 5:</strong> Forgetting that a diagonal line missing the origin passes through 3 quadrants.</div>
+          </div>
+          <br>
+          <div style="border: 1px solid #c9c9c9; padding: 8px; margin: 0; background: #f7f7ff;">
+            <div style="font-weight: bold; font-size: 15pt; margin: 0 0 5px 0;">Final Check</div>
+            <div style="margin: 0 0 4px 0;">Did you identify the line type?</div>
+            <div style="margin: 0 0 4px 0;">Did you check whether the line passes through the origin?</div>
+            <div style="margin: 0 0 4px 0;">Did you choose None, Horizontal, or Vertical for the axis?</div>
+            <div style="margin: 0;">Did you count only quadrants where the line has points inside the quadrant?</div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
